@@ -119,23 +119,36 @@ const TodoPage: React.FC = () => {
   const completedTodos = todos.filter(todo => todo.completed);
 
   return (
-    <div className='max-w-xl w-full mx-auto space-y-6 p-4'>
-      <div className='flex items-center justify-between'>
-        <h1 className='text-xl font-semibold'>To Do</h1>
+    <div className="max-w-7xl w-full mx-auto space-y-6 px-4 lg:px-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2.5">
+            Operational Staff Tasks
+            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#ccff00]/15 text-[#ccff00] border border-[#ccff00]/30 tabular-nums">
+              {incompleteTodos.length} Open Tasks
+            </span>
+          </h1>
+          <p className="text-xs text-slate-400 mt-1">
+            Daily gym floor checklist, equipment maintenance, and administrative follow-ups
+          </p>
+        </div>
       </div>
-      <Separator />
 
-      
       {/* Add new todo */}
-      <div className="flex gap-2 mb-8">
+      <div className="flex gap-3 p-4 rounded-3xl bg-[#12141c] border border-white/[0.08] shadow-2xl">
         <Input
-          placeholder="Add a new task..."
+          placeholder="Type new operational gym task and press Enter..."
           value={newTodo}
           onChange={(e) => setNewTodo(e.target.value)}
           onKeyDown={handleKeyDown}
-          className="flex-grow"
+          className="flex-grow h-11 rounded-full bg-[#090a0f] border-white/10 text-white placeholder:text-slate-500 text-sm px-5 focus-visible:ring-[#ccff00]"
         />
-        <Button onClick={addTodo}>Add</Button>
+        <Button
+          onClick={addTodo}
+          className="h-11 px-7 rounded-full bg-[#ccff00] text-black font-semibold text-sm hover:bg-[#b6f904] shadow-md shadow-[#ccff00]/25 transition-all"
+        >
+          + Add Task
+        </Button>
       </div>
       
       {/* Todo statistics */}

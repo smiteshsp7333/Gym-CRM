@@ -18,10 +18,11 @@ import { CookiesProvider } from "react-cookie";
 //   subsets: ["latin"],
 // });
 
-export const metadata: Metadata = {
-  title: "Synergy Fitness & Wellness Club",
-  description: "Best gym in Akola",
+import { GYM_BRANDING } from "@/config/branding";
 
+export const metadata: Metadata = {
+  title: `${GYM_BRANDING.name} - ${GYM_BRANDING.tagline}`,
+  description: `Modern management platform for ${GYM_BRANDING.name}`,
 };
 
 export default function RootLayout({
@@ -30,7 +31,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="dark" suppressHydrationWarning>
       <head>
         <meta property="og:image" content="/synergy.png"/>
         <meta property="og:image:width" content="1200" />
@@ -40,12 +41,13 @@ export default function RootLayout({
       </head>
       <body
         className={`antialiased`}
+        suppressHydrationWarning
       >
 
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
-          enableSystem
+          defaultTheme="dark"
+          forcedTheme="dark"
           disableTransitionOnChange
           >
         

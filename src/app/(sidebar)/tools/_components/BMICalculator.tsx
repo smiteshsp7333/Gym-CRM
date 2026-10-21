@@ -1,151 +1,241 @@
-'use client'
+"use client";
 
-import React, { useState, useEffect } from 'react'
-import { Slider } from "@/components/ui/slider"
-import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { InfoIcon } from "lucide-react"
+import React, { useState, useEffect } from "react";
+import { Slider } from "@/components/ui/slider";
+import { Label } from "@/components/ui/label";
+import { Info, Sparkles, HeartPulse, CheckCircle2 } from "lucide-react";
 
 interface BMIRange {
   range: string;
   classification: string;
   color: string;
+  accentHex: string;
+  advice: string;
 }
+
+const bmiRanges: BMIRange[] = [
+  {
+    range: "< 18.5",
+    classification: "Underweight",
+    color: "bg-cyan-500",
+    accentHex: "#06b6d4",
+    advice: "Caloric surplus and progressive strength resistance training recommended.",
+  },
+  {
+    range: "18.5 - 24.9",
+    classification: "Optimal Fitness",
+    color: "bg-[#ccff00]",
+    accentHex: "#ccff00",
+    advice: "Excellent body composition. Maintain workout frequency and balanced macronutrients.",
+  },
+  {
+    range: "25 - 29.9",
+    classification: "Overweight",
+    color: "bg-amber-400",
+    accentHex: "#fbbf24",
+    advice: "Moderate caloric deficit combined with HIIT and strength training recommended.",
+  },
+  {
+    range: "30 - 34.9",
+    classification: "Obesity Class I",
+    color: "bg-orange-500",
+    accentHex: "#f97316",
+    advice: "Structured cardiovascular regimen and dietary counseling recommended.",
+  },
+  {
+    range: "35 - 39.9",
+    classification: "Obesity Class II",
+    color: "bg-rose-500",
+    accentHex: "#f43f5e",
+    advice: "Supervised athletic conditioning and medical lifestyle evaluation recommended.",
+  },
+  {
+    range: "> 40",
+    classification: "Obesity Class III",
+    color: "bg-red-600",
+    accentHex: "#dc2626",
+    advice: "Clinical health consultation and specialized mobility training required.",
+  },
+];
 
 const BMICalculator: React.FC = () => {
-  // Initial state values
-  const [weight, setWeight] = useState<number>(70)
-  const [height, setHeight] = useState<number>(170)
-  const [bmi, setBMI] = useState<number>(0)
-  const [bmiStatus, setBMIStatus] = useState<BMIRange>({
-    range: "",
-    classification: "",
-    color: ""
-  })
+  const [weight, setWeight] = useState<number>(74);
+  const [height, setHeight] = useState<number>(176);
+  const [bmi, setBMI] = useState<number>(23.9);
+  const [status, setStatus] = useState<BMIRange>(bmiRanges[1]);
 
-  // BMI classification ranges
-  const bmiRanges: BMIRange[] = [
-    { range: "< 18.5", classification: "Underweight", color: "bg-blue-500" },
-    { range: "18.5 - 24.9", classification: "Normal weight", color: "bg-green-500" },
-    { range: "25 - 29.9", classification: "Overweight", color: "bg-yellow-500" },
-    { range: "30 - 34.9", classification: "Obesity Class I", color: "bg-orange-500" },
-    { range: "35 - 39.9", classification: "Obesity Class II", color: "bg-red-400" },
-    { range: "> 40", classification: "Obesity Class III", color: "bg-red-600" }
-  ]
-
-  // Calculate BMI whenever weight or height changes
   useEffect(() => {
-    calculateBMI()
-  }, [weight, height])
+    const heightInM = height / 100;
+    const val = weight / (heightInM * heightInM);
+    const rounded = parseFloat(val.toFixed(1));
+    setBMI(rounded);
 
-  // Calculate BMI and determine status
-  const calculateBMI = () => {
-    const heightInMeters = height / 100
-    const bmiValue = weight / (heightInMeters * heightInMeters)
-    setBMI(parseFloat(bmiValue.toFixed(1)))
-    
-    // Set BMI status based on calculated value
-    if (bmiValue < 18.5) {
-      setBMIStatus(bmiRanges[0])
-    } else if (bmiValue < 25) {
-      setBMIStatus(bmiRanges[1])
-    } else if (bmiValue < 30) {
-      setBMIStatus(bmiRanges[2]) 
-    } else if (bmiValue < 35) {
-      setBMIStatus(bmiRanges[3])
-    } else if (bmiValue < 40) {
-      setBMIStatus(bmiRanges[4])
-    } else {
-      setBMIStatus(bmiRanges[5])
-    }
-  }
+    if (val < 18.5) setStatus(bmiRanges[0]);
+    else if (val < 25) setStatus(bmiRanges[1]);
+    else if (val < 30) setStatus(bmiRanges[2]);
+    else if (val < 35) setStatus(bmiRanges[3]);
+    else if (val < 40) setStatus(bmiRanges[4]);
+    else setStatus(bmiRanges[5]);
+  }, [weight, height]);
+
+  // Ideal weight range for this height
+  const minIdeal = Math.round(18.5 * Math.pow(height / 100, 2));
+  const maxIdeal = Math.round(24.9 * Math.pow(height / 100, 2));
 
   return (
-    <div className="space-y-6">
-      {/* Weight slider */}
-      <div className="space-y-2">
-        <div className="flex justify-between items-center">
-          <Label htmlFor="weight">Weight</Label>
-          <span className="text-sm font-medium">{weight} kg</span>
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+      {/* Left Sliders (7 Cols) */}
+      <div className="lg:col-span-7 space-y-6">
+        <div>
+          <h2 className="text-xl font-bold text-white flex items-center gap-2">
+            <HeartPulse className="h-5 w-5 text-[#ccff00]" />
+            Body Mass Index Analyzer
+          </h2>
+          <p className="text-xs text-zinc-400 mt-1">
+            Adjust the height and body weight sliders below to calculate biometric classification.
+          </p>
         </div>
-        <Slider 
-          id="weight"
-          min={30}
-          max={200}
-          step={1}
-          value={[weight]}
-          onValueChange={(value) => setWeight(value[0])}
-          className="py-4"
-        />
-        <div className="flex justify-between text-xs text-muted-foreground">
-          <span>30 kg</span>
-          <span>200 kg</span>
+
+        {/* Weight Slider */}
+        <div className="p-4 rounded-2xl bg-zinc-900/60 border border-zinc-800 space-y-3">
+          <div className="flex justify-between items-center">
+            <Label className="text-xs font-semibold text-zinc-300 uppercase tracking-wide">
+              Body Weight
+            </Label>
+            <span className="text-base font-extrabold text-[#ccff00] font-mono bg-[#ccff00]/10 px-3 py-0.5 rounded-full border border-[#ccff00]/20">
+              {weight} kg
+            </span>
+          </div>
+          <Slider
+            min={35}
+            max={180}
+            step={1}
+            value={[weight]}
+            onValueChange={(val) => setWeight(val[0])}
+            className="py-2 cursor-pointer"
+          />
+          <div className="flex justify-between text-[11px] text-zinc-500 font-mono">
+            <span>35 kg</span>
+            <span>Ideal: {minIdeal}-{maxIdeal} kg</span>
+            <span>180 kg</span>
+          </div>
+        </div>
+
+        {/* Height Slider */}
+        <div className="p-4 rounded-2xl bg-zinc-900/60 border border-zinc-800 space-y-3">
+          <div className="flex justify-between items-center">
+            <Label className="text-xs font-semibold text-zinc-300 uppercase tracking-wide">
+              Stature / Height
+            </Label>
+            <span className="text-base font-extrabold text-cyan-400 font-mono bg-cyan-500/10 px-3 py-0.5 rounded-full border border-cyan-500/20">
+              {height} cm ({Math.floor(height / 30.48)}&apos; {Math.round((height % 30.48) / 2.54)}&quot;)
+            </span>
+          </div>
+          <Slider
+            min={130}
+            max={220}
+            step={1}
+            value={[height]}
+            onValueChange={(val) => setHeight(val[0])}
+            className="py-2 cursor-pointer"
+          />
+          <div className="flex justify-between text-[11px] text-zinc-500 font-mono">
+            <span>130 cm</span>
+            <span>Average: 172 cm</span>
+            <span>220 cm</span>
+          </div>
+        </div>
+
+        {/* Multi-Segment Color Scale Bar */}
+        <div className="space-y-2 pt-2">
+          <div className="flex items-center justify-between text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">
+            <span>WHO Classification Scale</span>
+            <span className="font-mono text-zinc-300">BMI {bmi}</span>
+          </div>
+          <div className="grid grid-cols-6 gap-1.5 h-2.5 rounded-full overflow-hidden p-0.5 bg-zinc-900 border border-zinc-800">
+            {bmiRanges.map((r, i) => (
+              <div
+                key={i}
+                className={`rounded-full transition-all ${r.color} ${
+                  status.classification === r.classification ? "opacity-100 ring-2 ring-white" : "opacity-35"
+                }`}
+                title={r.classification}
+              />
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Height slider */}
-      <div className="space-y-2">
-        <div className="flex justify-between items-center">
-          <Label htmlFor="height">Height</Label>
-          <span className="text-sm font-medium">{height} cm</span>
-        </div>
-        <Slider 
-          id="height"
-          min={120}
-          max={220}
-          step={1}
-          value={[height]}
-          onValueChange={(value) => setHeight(value[0])}
-          className="py-4"
-        />
-        <div className="flex justify-between text-xs text-muted-foreground">
-          <span>120 cm</span>
-          <span>220 cm</span>
-        </div>
-      </div>
-
-      {/* Result section */}
-      <div className="pt-6 space-y-4">
-        <div className="text-center">
-          <div className="text-sm text-muted-foreground mb-1">Your BMI</div>
-          <div className="text-4xl font-bold">{bmi}</div>
-          <Badge 
-            className={`mt-2 ${bmiStatus.color} hover:${bmiStatus.color}`}
-          >
-            {bmiStatus.classification}
-          </Badge>
+      {/* Right Result Circular Gauge Card (5 Cols) */}
+      <div className="lg:col-span-5 flex flex-col items-center justify-center p-6 rounded-3xl bg-[#0d0f15] border border-zinc-800 text-center relative overflow-hidden shadow-inner">
+        <div className="text-[11px] font-semibold uppercase tracking-widest text-zinc-400 mb-2">
+          Biometric Score
         </div>
 
-        {/* BMI scale visualization */}
-        <div className="flex justify-between h-2 mt-8 mb-2">
-          {bmiRanges.map((range, index) => (
-            <div 
-              key={index} 
-              className={`h-full flex-1 ${range.color}`}
-            ></div>
-          ))}
-        </div>
-        
-        <div className="flex justify-between text-xs text-muted-foreground">
-          <span>18.5</span>
-          <span>25</span>
-          <span>30</span>
-          <span>35</span>
-          <span>40</span>
+        {/* Circular Display */}
+        <div className="relative w-44 h-44 flex items-center justify-center my-2">
+          {/* Outer SVG Ring */}
+          <svg className="w-full h-full -rotate-90" viewBox="0 0 120 120">
+            <circle
+              cx="60"
+              cy="60"
+              r="50"
+              className="stroke-zinc-800 fill-none"
+              strokeWidth="8"
+            />
+            <circle
+              cx="60"
+              cy="60"
+              r="50"
+              stroke={status.accentHex}
+              fill="none"
+              strokeWidth="8"
+              strokeDasharray="314"
+              strokeDashoffset={Math.max(0, 314 - (Math.min(bmi, 45) / 45) * 314)}
+              strokeLinecap="round"
+              className="transition-all duration-700 ease-out"
+            />
+          </svg>
+
+          {/* Inner Metrics */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <span className="text-4xl font-black text-white font-mono tracking-tight">
+              {bmi}
+            </span>
+            <span className="text-[10px] text-zinc-400 font-semibold uppercase">
+              kg / m²
+            </span>
+          </div>
         </div>
 
-        {/* Information alert */}
-        <Alert className="mt-6 bg-muted/50">
-          <InfoIcon className="h-4 w-4" />
-          <AlertDescription className="text-xs text-muted-foreground">
-            BMI = weight (kg) / height (m)². BMI is a screening tool, not a diagnostic. 
-            Please consult with a healthcare professional for a complete health assessment.
-          </AlertDescription>
-        </Alert>
+        {/* Classification Pill */}
+        <div
+          className="mt-3 inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold font-mono tracking-wide shadow-md"
+          style={{
+            backgroundColor: `${status.accentHex}20`,
+            color: status.accentHex === "#ccff00" ? "#ccff00" : status.accentHex,
+            border: `1px solid ${status.accentHex}50`,
+          }}
+        >
+          <Sparkles className="h-3.5 w-3.5" />
+          {status.classification}
+        </div>
+
+        {/* Dynamic Fitness Advice */}
+        <p className="mt-4 text-xs text-zinc-400 leading-relaxed px-2">
+          {status.advice}
+        </p>
+
+        {/* Recommended Target Range */}
+        <div className="mt-4 pt-4 border-t border-zinc-800/80 w-full flex items-center justify-between text-xs text-zinc-400">
+          <span>Healthy Target Range:</span>
+          <span className="font-bold text-zinc-200 font-mono">
+            {minIdeal} - {maxIdeal} kg
+          </span>
+        </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default BMICalculator
+export default BMICalculator;

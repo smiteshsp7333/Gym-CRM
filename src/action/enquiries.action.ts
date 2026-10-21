@@ -2,7 +2,8 @@
 
 import prisma  from '@/lib/prisma';
 // import { EnquiryType }from '@prisma/client';
-import { format, parse, isValid } from 'date-fns';
+import { parse, isValid } from 'date-fns';
+import { normalizeToDdMmYyyy } from '@/lib/utils';
 
 type EnquiryType = 'call' | 'walkin' | 'instagram' | 'whatsapp';
 
@@ -27,7 +28,8 @@ export interface EnquiryResponse {
 
 // Helper function to validate date format
 const validateDateFormat = (dateStr: string): boolean => {
-  const parsed = parse(dateStr, 'dd-MM-yyyy', new Date());
+  const norm = normalizeToDdMmYyyy(dateStr);
+  const parsed = parse(norm, 'dd-MM-yyyy', new Date());
   return isValid(parsed);
 };
 
@@ -52,11 +54,13 @@ export async function AddEnquiry(data: EnquiryInput): Promise<EnquiryResponse> {
       throw new Error('Invalid followup date format. Use dd-MM-yyyy');
     }
 
+    const normalizedFollowup = data.followupDate ? normalizeToDdMmYyyy(data.followupDate) : null;
+
     const enquiry = await prisma.enquiry.create({
       data: {
         name: data.name,
         phone: Number(data.phone),
-        followupDate: data.followupDate,
+        followupDate: normalizedFollowup,
         message: data.message,
         type: data.type,
       },

@@ -13,6 +13,7 @@ import {
 } from "date-fns";
 import { SalesResponse } from "./sales.action";
 import { constants } from "buffer";
+import { normalizeToDdMmYyyy } from "@/lib/utils";
 // import { Gender } from '@prisma/client';
 type Gender = "male" | "female" | "other";
 // Type definitions
@@ -41,9 +42,10 @@ export interface MemberResponse {
   updatedAt: Date;
 }
 
-// Helper function to validate date format
+// Helper function to validate and normalize date format
 const validateDateFormat = (dateStr: string): boolean => {
-  const parsed = parse(dateStr, "dd-MM-yyyy", new Date());
+  const norm = normalizeToDdMmYyyy(dateStr);
+  const parsed = parse(norm, "dd-MM-yyyy", new Date());
   return isValid(parsed);
 };
 
@@ -111,9 +113,9 @@ export async function AddMember(data: MemberInput): Promise<MemberResponse> {
         memberCode, // Use the generated code
         phone: Number(data.phone),
         address: data.address,
-        DOB: data.DOB,
+        DOB: normalizeToDdMmYyyy(data.DOB),
         gender: data.gender,
-        DOJ: data.DOJ,
+        DOJ: normalizeToDdMmYyyy(data.DOJ),
       },
     });
 

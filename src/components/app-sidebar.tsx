@@ -2,27 +2,29 @@
 
 import * as React from "react";
 import {
-  IconCake,
-  IconChartBar,
-  IconDashboard,
-  IconDatabase,
-  IconDoorEnter,
-  IconFileAi,
-  IconFileDescription,
-  IconInnerShadowTop,
-  IconListDetails,
-  IconQuestionMark,
-  IconReport,
-  IconSearch,
-  IconToiletPaper,
-  IconUser,
-  IconUserCancel,
-  IconUsers,
-} from "@tabler/icons-react";
+  LayoutDashboard,
+  Users,
+  TrendingUp,
+  Search,
+  CheckSquare,
+  Layers,
+  CalendarCheck2,
+  Activity,
+  UserPlus,
+  PackagePlus,
+  FileText,
+  Receipt,
+  HelpCircle,
+  UserX,
+  Gift,
+  Dumbbell,
+  Utensils,
+} from "lucide-react";
 
 import { NavDocuments } from "@/components/nav-documents";
 import { NavMain } from "@/components/nav-main";
 import { NavSecondary } from "@/components/nav-secondary";
+import { NavUser } from "@/components/nav-user";
 import {
   Sidebar,
   SidebarContent,
@@ -33,89 +35,95 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { ModeToggle } from "./custom/theme-toggle";
+import { GYM_BRANDING } from "@/config/branding";
 
 const data = {
   navMain: [
     {
       title: "Dashboard",
       url: "/dashboard",
-      icon: IconDashboard,
+      icon: LayoutDashboard,
     },
     {
       title: "Members",
       url: "/members",
-      icon: IconUsers,
+      icon: Users,
     },
     {
-      title: "Sales",
+      title: "Sales & Invoices",
       url: "/sales",
-      icon: IconChartBar,
+      icon: TrendingUp,
     },
     {
-      title: "Enquiries",
+      title: "Enquiries CRM",
       url: "/enquiries",
-      icon: IconSearch,
+      icon: Search,
     },
     {
-      title: "To Do",
+      title: "Diet & Nutrition",
+      url: "/diet",
+      icon: Utensils,
+    },
+    {
+      title: "Tasks & To-Do",
       url: "/todo",
-      icon: IconListDetails,
+      icon: CheckSquare,
     },
     {
-      title: "Service",
+      title: "Membership Tiers",
       url: "/services",
-      icon: IconReport,
+      icon: Layers,
     },
   ],
   navSecondary: [
     {
-      title: "Attendance",
+      title: "Attendance Terminal",
       url: "/attendance",
-      icon: IconDoorEnter,
+      icon: CalendarCheck2,
     },
     {
-      title: "Fitness Tools",
+      title: "Fitness Calculators",
       url: "/tools",
-      icon: IconToiletPaper,
+      icon: Activity,
     },
   ],
   documents: [
     {
       name: "New Member",
       url: "/members/new",
-      icon: IconUser,
+      icon: UserPlus,
     },
     {
       name: "New Service",
       url: "/services/new",
-      icon: IconDatabase,
+      icon: PackagePlus,
     },
     {
       name: "New Enquiry",
       url: "/enquiries/new",
-      icon: IconFileDescription,
+      icon: FileText,
     },
     {
       name: "New Sale",
       url: "/sales/new",
-      icon: IconFileAi,
+      icon: Receipt,
     },
   ],
   followups: [
     {
-      name: "Enquiries",
+      name: "Enquiries Radar",
       url: "/enquiries/followups",
-      icon: IconQuestionMark,
+      icon: HelpCircle,
     },
     {
-      name: "Membership",
+      name: "Membership Renewals",
       url: "/sales/followups",
-      icon: IconUserCancel,
+      icon: UserX,
     },
     {
-      name: "Birthdays",
+      name: "Member Birthdays",
       url: "/members/birthdays",
-      icon: IconCake,
+      icon: Gift,
     },
   ],
 };
@@ -130,9 +138,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               asChild
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
-              <a href="#">
-                <IconInnerShadowTop className="!size-5" />
-                <span className="text-base font-semibold">Synergy Fitness</span>
+              <a href="/dashboard" className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-[#ccff00] text-black flex items-center justify-center font-black">
+                  <Dumbbell className="h-4 w-4" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-sm font-bold tracking-tight text-white leading-tight">
+                    {GYM_BRANDING.name}
+                  </span>
+                  <span className="text-[10px] text-zinc-400 font-medium">
+                    Executive CRM
+                  </span>
+                </div>
               </a>
             </SidebarMenuButton>
             <ModeToggle />
@@ -145,7 +162,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavDocuments items={data.followups} title="Follow Ups" />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
-      <SidebarFooter>{/* <NavUser user={data.user} /> */}</SidebarFooter>
+      <SidebarFooter>
+        <NavUser
+          user={{
+            name: "Super Admin",
+            email: GYM_BRANDING.adminCredentials.email,
+            avatar: "",
+          }}
+        />
+      </SidebarFooter>
     </Sidebar>
   );
 }

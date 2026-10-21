@@ -14,6 +14,7 @@ import React from "react"
 import { toast } from "sonner"
 import { LoginMember } from "@/action/auth.action"
 import { cookies } from "next/headers"
+import { GYM_BRANDING } from "@/config/branding"
 
 export function LoginForm({
   className,
@@ -77,7 +78,7 @@ export function LoginForm({
               </div>
             </div>
             <div className="mt-4 text-center text-sm">
-              Don&apos;t have an account? Contact someone at Synergy Fitness
+              Don&apos;t have an account? Contact someone at {GYM_BRANDING.name}
             </div>
           </form>
         </CardContent>

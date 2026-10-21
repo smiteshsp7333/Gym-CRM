@@ -7,6 +7,7 @@ import { Input } from './ui/input'
 import Link from 'next/link'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import Image from 'next/image'
+import { GYM_BRANDING } from '@/config/branding'
 
 type Exercise = {
     id: string;
@@ -64,11 +65,10 @@ const WorkoutsList = ({ AllExercise }: Props) => {
     return (
         <div className='space-y-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6'>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div className='flex  items-center gap-2'>
-                    <Image src="/synergy.png" width={100} height={50} alt="fitness" className='dark:hidden' />
-                    <Image src="/synergy-light.png" width={100} height={50} alt="fitness" className='hidden dark:block' />
+                <div className='flex items-center gap-2'>
+                    <Image src={GYM_BRANDING.logoDark} width={100} height={50} alt={GYM_BRANDING.name} className='dark:hidden object-contain' />
+                    <Image src={GYM_BRANDING.logoLight} width={100} height={50} alt={GYM_BRANDING.name} className='hidden dark:block object-contain' />
                     <h1 className="text-2xl font-bold tracking-tight">Exercise Library</h1>
-
                 </div>
 
                 {/* Search input with icon */}

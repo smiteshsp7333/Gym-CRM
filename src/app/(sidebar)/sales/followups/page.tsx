@@ -11,6 +11,7 @@ import { useLoading } from '@/hooks/use-loading'
 import { format } from 'date-fns'
 import Link from 'next/link'
 import React, { useEffect, useState } from 'react'
+import { GYM_BRANDING } from '@/config/branding'
 
 type Props = {}
 
@@ -70,11 +71,11 @@ const page = (props: Props) => {
 
     const handleSaleSelected = (row: any) => {
         setSelectedSale(row);
-        const msgexpired = `Hi👋🏻 ${row.member_name} your ${row.service_name} membership has ended on ${(row.endDate)}, Please renew your membership.%0A%0A-Team Synergy 💪🏻`
-        const msg7days = `Hi👋🏻 ${row.member_name} your ${row.service_name} membership is ending in 7 days (on ${(row.endDate)}), Please renew your membership.%0A%0A-Team Synergy 💪🏻`
-        const msg5days = `Hi👋🏻 ${row.member_name} your ${row.service_name} membership is ending in 5 days (on ${(row.endDate)}), Please renew your membership.%0A%0A-Team Synergy 💪🏻`
-        const msgtoday = `Hi👋🏻 ${row.member_name} your ${row.service_name} membership is ending today (on ${(row.endDate)}), Please renew your membership.%0A%0A-Team Synergy 💪🏻`
-        const msgtomorrow = `Hi👋🏻 ${row.member_name} your ${row.service_name} membership is ending tomorrow (on ${(row.endDate)}), Please renew your membership.%0A%0A-Team Synergy 💪🏻`
+        const msgexpired = `Hi ${row.member_name}, your ${row.service_name} membership has ended on ${(row.endDate)}. Please renew your membership to continue your fitness journey.%0A%0A- Team ${GYM_BRANDING.shortName}`
+        const msg7days = `Hi ${row.member_name}, your ${row.service_name} membership is ending in 7 days (on ${(row.endDate)}). Please renew your membership.%0A%0A- Team ${GYM_BRANDING.shortName}`
+        const msg5days = `Hi ${row.member_name}, your ${row.service_name} membership is ending in 5 days (on ${(row.endDate)}). Please renew your membership.%0A%0A- Team ${GYM_BRANDING.shortName}`
+        const msgtoday = `Hi ${row.member_name}, your ${row.service_name} membership is ending today (on ${(row.endDate)}). Please renew your membership.%0A%0A- Team ${GYM_BRANDING.shortName}`
+        const msgtomorrow = `Hi ${row.member_name}, your ${row.service_name} membership is ending tomorrow (on ${(row.endDate)}). Please renew your membership.%0A%0A- Team ${GYM_BRANDING.shortName}`
         if (days === -1) {
             setMessage(msgexpired)
         } else if (days === 7) {
@@ -89,38 +90,77 @@ const page = (props: Props) => {
     }
 
     return (
-        <div className='max-w-xl w-full mx-auto space-y-6 p-4'>
-            <div className='flex items-center justify-between'>
-                <h1 className='text-xl font-semibold'>Membership Followups</h1>
+        <div className="max-w-7xl w-full mx-auto space-y-6 px-4 lg:px-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2.5">
+                        Membership Renewal Follow-ups
+                        <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30 tabular-nums">
+                            {salesList.length} In Retention Radar
+                        </span>
+                    </h1>
+                    <p className="text-xs text-slate-400 mt-1">
+                        Track athletes with expiring plans and trigger instant 1-click renewal WhatsApp reminders
+                    </p>
+                </div>
             </div>
-            <Separator />
-            <Card>
-                <CardHeader>
-                    <CardTitle>Send message</CardTitle>
-                    <CardDescription>Send message to selected member</CardDescription>
-                </CardHeader>
-                {
-                    SelectedSale &&
-                    <CardContent className='space-y-4'>
-                        <p>{message}</p>
-                        <Link className='text-primary mt-4' href={`https://api.whatsapp.com/send?phone=91${SelectedSale?.member_phone}&text=${message}`} target='_blank'>
-                            <Button>
-                                Send
+
+            {SelectedSale && (
+                <Card className="rounded-3xl bg-[#12141c] border border-white/[0.08] shadow-2xl p-6">
+                    <CardHeader className="p-0 mb-4">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <CardTitle className="text-lg font-bold text-white flex items-center gap-2">
+                                    <span>Renewal Reminder for {SelectedSale.member_name}</span>
+                                    <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#ccff00]/10 text-[#ccff00] border border-[#ccff00]/20 font-medium">
+                                        Plan: {SelectedSale.service_name}
+                                    </span>
+                                </CardTitle>
+                                <CardDescription className="text-xs text-slate-400 mt-0.5">
+                                    Ends on {SelectedSale.endDate} • Ready to send via WhatsApp
+                                </CardDescription>
+                            </div>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="p-0 space-y-4">
+                        <div className="p-4 rounded-2xl bg-[#090a0f] border border-white/[0.06] text-sm text-slate-200 leading-relaxed">
+                            {decodeURIComponent(message.replace(/%0A/g, "\n"))}
+                        </div>
+                        <Link
+                            href={`https://api.whatsapp.com/send?phone=91${SelectedSale?.member_phone}&text=${message}`}
+                            target="_blank"
+                        >
+                            <Button className="rounded-full bg-[#25D366] text-black font-semibold text-xs px-6 hover:bg-[#20ba5a] shadow-md shadow-[#25D366]/20 flex items-center gap-2">
+                                <span>Send WhatsApp Renewal Nudge</span>
+                                <span>→</span>
                             </Button>
                         </Link>
                     </CardContent>
-                }
+                </Card>
+            )}
 
-            </Card>
-            <Tabs onValueChange={(e) => setDays(parseInt(e))} defaultValue='0'>
-                <TabsList >
-                    <TabsTrigger value='0'>Today</TabsTrigger>
-                    <TabsTrigger value='1'>Tomorrow</TabsTrigger>
-                    <TabsTrigger value='5'>5 days</TabsTrigger>
-                    <TabsTrigger value='7'>7 days</TabsTrigger>
-                    <TabsTrigger value='-1'>Expired</TabsTrigger>
-                </TabsList>
-            </Tabs>
+            <div className="flex items-center justify-between">
+                <Tabs onValueChange={(e) => setDays(parseInt(e))} defaultValue="0" className="w-full sm:w-auto">
+                    <TabsList className="bg-[#12141c] border border-white/[0.08] p-1 rounded-full">
+                        <TabsTrigger value="0" className="rounded-full data-[state=active]:bg-[#ccff00] data-[state=active]:text-black data-[state=active]:font-semibold text-xs transition-all">
+                            Ending Today
+                        </TabsTrigger>
+                        <TabsTrigger value="1" className="rounded-full data-[state=active]:bg-[#ccff00] data-[state=active]:text-black data-[state=active]:font-semibold text-xs transition-all">
+                            Ending Tomorrow
+                        </TabsTrigger>
+                        <TabsTrigger value="5" className="rounded-full data-[state=active]:bg-[#ccff00] data-[state=active]:text-black data-[state=active]:font-semibold text-xs transition-all">
+                            In 5 Days
+                        </TabsTrigger>
+                        <TabsTrigger value="7" className="rounded-full data-[state=active]:bg-[#ccff00] data-[state=active]:text-black data-[state=active]:font-semibold text-xs transition-all">
+                            In 7 Days
+                        </TabsTrigger>
+                        <TabsTrigger value="-1" className="rounded-full data-[state=active]:bg-rose-500 data-[state=active]:text-white data-[state=active]:font-semibold text-xs transition-all">
+                            Expired
+                        </TabsTrigger>
+                    </TabsList>
+                </Tabs>
+            </div>
+
             <DataTable dataRows={salesList} isLoading={isLoading} columns={columns} onItemClick={handleSaleSelected} />
         </div>
     )

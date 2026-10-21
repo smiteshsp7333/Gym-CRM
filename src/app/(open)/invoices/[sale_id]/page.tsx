@@ -4,6 +4,7 @@ import { useReactToPrint } from "react-to-print";
 import { useRef } from "react";
 import { Button } from '@/components/ui/button';
 import { ExpandedSalesResponse, GetSaleWithExpand } from '@/action/sales.action';
+import { GYM_BRANDING } from '@/config/branding';
 
 const Page = ({ params }: { params: any }) => {
     const unwrappedParams = React.use(params)
@@ -14,7 +15,7 @@ const Page = ({ params }: { params: any }) => {
     return (
         <div className='max-w-5xl mx-auto px-4 py-4'>
             <div className='flex items-center justify-between'>
-                <h1 className='font-bold mb-2'>Synergy Sales Invoice</h1>
+                <h1 className='font-bold mb-2'>{GYM_BRANDING.name} Sales Invoice</h1>
                 <div className='mb-2 flex gap-2'>
                     <Button
                         onClick={reactToPrintFn}
@@ -24,8 +25,8 @@ const Page = ({ params }: { params: any }) => {
                     </Button>
                     <Button
                         onClick={()=>navigator.share({ 
-                            title: "Synergy Sales Invoice", 
-                            text: `Dear customer below is the link of your invoice of your recent purchase at Synergy Fitness & Wellness Club. Thank you for choosing us.\n\nLink: ${window.location.href}\n\n-Team Synergy 💪🏻`, 
+                            title: `${GYM_BRANDING.name} Sales Invoice`, 
+                            text: `Dear customer, your invoice for your recent membership purchase at ${GYM_BRANDING.name} is available below:\n\nLink: ${window.location.href}\n\n- Team ${GYM_BRANDING.shortName}`, 
                         })}
                         className="bg-blue-600 hover:bg-blue-700 text-white"
                     >
@@ -60,15 +61,15 @@ const Invoice = ({
         invoiceNumber: "INV-2025-0042",
         date: "May 6, 2025",
         gym: {
-            name: "Synergy Fitness & Wellness Club",
-            address: "Synergy Street, Near Bara Jyotirling Temple, Ranpise Nagar, Akola, Maharashtra, India 444001",
-            contact: "+91 8625862515 , +91 9922717137",
-            email: "synergy.fit.help@gmail.com",
+            name: GYM_BRANDING.name,
+            address: GYM_BRANDING.fullAddress,
+            contact: GYM_BRANDING.phone,
+            email: GYM_BRANDING.email,
             website: ""
         },
 
         termsAndConditions: [
-            "Membership is non-transferable and non-refundable. PowerFit Gym reserves the right to modify the terms of membership. Members must comply with all gym rules and regulations.",
+            `Membership is non-transferable and non-refundable. ${GYM_BRANDING.name} reserves the right to modify the terms of membership. Members must comply with all gym rules and regulations.`,
         ]
     };
 

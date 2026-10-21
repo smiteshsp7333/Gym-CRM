@@ -13,6 +13,7 @@ import {
   endOfMonth,
 } from "date-fns";
 import { MemberResponse } from "./member.action";
+import { normalizeToDdMmYyyy } from "@/lib/utils";
 
 // Type definitions
 export interface SalesInput {
@@ -69,7 +70,8 @@ export interface ExpandedSalesResponse {
 
 // Helper function to validate date format
 const validateDateFormat = (dateStr: string): boolean => {
-  const parsed = parse(dateStr, "dd-MM-yyyy", new Date());
+  const norm = normalizeToDdMmYyyy(dateStr);
+  const parsed = parse(norm, "dd-MM-yyyy", new Date());
   return isValid(parsed);
 };
 
@@ -112,7 +114,8 @@ export async function AddSales(data: SalesInput): Promise<SalesResponse> {
     }
 
     // Calculate endDate based on service duration (in months)
-    const startDate = parse(data.startDate, "dd-MM-yyyy", new Date());
+    const normalizedStart = normalizeToDdMmYyyy(data.startDate);
+    const startDate = parse(normalizedStart, "dd-MM-yyyy", new Date());
     const endDate = addMonths(startDate, service.duration);
     const formattedEndDate = format(endDate, "dd-MM-yyyy");
 
@@ -124,7 +127,7 @@ export async function AddSales(data: SalesInput): Promise<SalesResponse> {
         discount: data.discount,
         amount: data.amount,
         paid: data.paid,
-        startDate: data.startDate,
+        startDate: normalizedStart,
         endDate: formattedEndDate,
       },
     });

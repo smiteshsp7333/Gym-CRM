@@ -1,11 +1,17 @@
-import { LoginForm } from "@/components/login-form"
+import { Suspense } from "react";
+import { ExecutiveLoginPage } from "@/components/ExecutiveLoginPage";
+import { Loader2 } from "lucide-react";
 
-export default function Page() {
+export default function LoginPage() {
   return (
-    <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
-      <div className="w-full max-w-sm">
-        <LoginForm />
-      </div>
-    </div>
-  )
+    <Suspense
+      fallback={
+        <div className="min-h-screen w-full bg-[#07080c] flex items-center justify-center">
+          <Loader2 className="h-8 w-8 text-[#ccff00] animate-spin" />
+        </div>
+      }
+    >
+      <ExecutiveLoginPage />
+    </Suspense>
+  );
 }

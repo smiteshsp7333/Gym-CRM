@@ -1,31 +1,68 @@
-import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
-import { SidebarTrigger } from "@/components/ui/sidebar"
-import Link from "next/link"
+"use client";
+
+import React from "react";
+import { Separator } from "@/components/ui/separator";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import Link from "next/link";
+import { Calendar, Plus, UserPlus, Sparkles } from "lucide-react";
+import { GYM_BRANDING } from "@/config/branding";
 
 export function SiteHeader() {
+  const todayFormatted = new Intl.DateTimeFormat("en-IN", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+  }).format(new Date());
+
   return (
-    <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
-      <div className="flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6">
-        <SidebarTrigger className="-ml-1" />
-        <Separator
-          orientation="vertical"
-          className="mx-2 data-[orientation=vertical]:h-4"
-        />
-        <h1 className="text-base font-medium"></h1>
-        <div className="ml-auto flex items-center gap-2">
-          {/* <Link href={'/fitness-record'}>
-            <Button variant={'secondary'} size={'sm'}>
-              Fitness Record
-            </Button>
-          </Link> */}
-          <Link href={'/attendance'}>
-            <Button variant={'secondary'} size={'sm'}>
-              Attendance
-            </Button>
+    <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b border-white/[0.06] bg-[#090a0f]/90 backdrop-blur-md sticky top-0 z-40 transition-[width,height] ease-linear">
+      <div className="flex w-full items-center justify-between px-4 lg:px-6">
+        {/* Left Side: Sidebar Toggle & Brand Title */}
+        <div className="flex items-center gap-3">
+          <SidebarTrigger className="-ml-1 text-zinc-400 hover:text-white" />
+          <Separator orientation="vertical" className="mx-1 h-4 bg-zinc-800" />
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-bold tracking-tight text-white">
+              {GYM_BRANDING.name}
+            </span>
+            <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#ccff00]/10 text-[#ccff00] border border-[#ccff00]/20">
+              <span className="size-1.5 rounded-full bg-[#ccff00] animate-pulse" />
+              Live CRM
+            </span>
+          </div>
+        </div>
+
+        {/* Right Side: Date & Quick Actions (Direct Link Routing - Zero Nesting Errors) */}
+        <div className="flex items-center gap-2.5">
+          {/* Live Date Pill */}
+          <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-xs font-medium text-zinc-300 font-mono">
+            <Calendar className="size-3.5 text-[#ccff00]" />
+            <span>{todayFormatted}</span>
+          </div>
+
+          {/* Quick Create Member */}
+          <Link
+            href="/members/new"
+            prefetch={true}
+            className="hidden sm:inline-flex items-center gap-1.5 h-8 px-3 rounded-full border border-zinc-700/80 bg-zinc-900/80 hover:bg-zinc-800 hover:border-zinc-600 text-xs font-semibold text-zinc-200 hover:text-white transition-all shadow-sm active:scale-[0.98] cursor-pointer"
+          >
+            <UserPlus className="size-3.5 text-[#ccff00]" />
+            <span>Member</span>
+          </Link>
+
+          {/* Quick Create Sale */}
+          <Link
+            href="/sales/new"
+            prefetch={true}
+            className="inline-flex items-center gap-1.5 h-8 px-3.5 rounded-full bg-[#ccff00] hover:bg-[#b8e600] text-black font-extrabold text-xs shadow-md shadow-[#ccff00]/20 transition-all active:scale-[0.98] cursor-pointer"
+          >
+            <Plus className="size-3.5 stroke-[2.5]" />
+            <span>New Sale</span>
           </Link>
         </div>
       </div>
     </header>
-  )
+  );
 }
+
+export default SiteHeader;

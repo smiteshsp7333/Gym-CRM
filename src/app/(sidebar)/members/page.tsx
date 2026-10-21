@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLoading } from "@/hooks/use-loading";
-import { Check, Cross, X } from "lucide-react";
+import { Check, Cross, X, Gift, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useEffect } from "react";
@@ -89,21 +89,55 @@ const MemberPage = (props: Props) => {
     },
   ];
   return (
-    <div className="max-w-xl w-full mx-auto space-y-6 p-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Members</h1>
-        <Link href={"/members/new"}>
-          <Button>Create Member</Button>
-        </Link>
+    <div className="max-w-7xl w-full mx-auto space-y-6 px-4 lg:px-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2.5">
+            Member Directory
+            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#ccff00]/15 text-[#ccff00] border border-[#ccff00]/30 tabular-nums">
+              {memberList.length} Athletes
+            </span>
+          </h1>
+          <p className="text-xs text-slate-400 mt-1">
+            Manage athlete memberships, review statuses, and profile records
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/members/birthdays"
+            prefetch={true}
+            className="inline-flex items-center gap-1.5 h-9 px-4 rounded-full border border-white/10 bg-white/[0.04] text-xs font-semibold text-slate-200 hover:bg-white/10 hover:text-white transition-all cursor-pointer"
+          >
+            <Gift className="size-3.5 text-[#ccff00]" />
+            <span>Birthdays</span>
+          </Link>
+          <Link
+            href="/members/new"
+            prefetch={true}
+            className="inline-flex items-center gap-1.5 h-9 px-4 rounded-full bg-[#ccff00] text-black font-bold text-xs hover:bg-[#b8e600] shadow-md shadow-[#ccff00]/25 transition-all cursor-pointer"
+          >
+            <UserPlus className="size-3.5 stroke-[2.2]" />
+            <span>Register Member</span>
+          </Link>
+        </div>
       </div>
-      <Separator />
-      <Tabs onValueChange={(e) => setValue(e)} defaultValue="0">
-        <TabsList>
-          <TabsTrigger value="0">All</TabsTrigger>
-          <TabsTrigger value="1">Active</TabsTrigger>
-          <TabsTrigger value="2">In active</TabsTrigger>
-        </TabsList>
-      </Tabs>
+
+      <div className="flex items-center justify-between">
+        <Tabs onValueChange={(e) => setValue(e)} defaultValue="0" className="w-full sm:w-auto">
+          <TabsList className="bg-[#12141c] border border-white/[0.08] p-1 rounded-full">
+            <TabsTrigger value="0" className="rounded-full data-[state=active]:bg-[#ccff00] data-[state=active]:text-black data-[state=active]:font-semibold text-xs transition-all">
+              All Members
+            </TabsTrigger>
+            <TabsTrigger value="1" className="rounded-full data-[state=active]:bg-[#ccff00] data-[state=active]:text-black data-[state=active]:font-semibold text-xs transition-all">
+              Active Plans
+            </TabsTrigger>
+            <TabsTrigger value="2" className="rounded-full data-[state=active]:bg-[#ccff00] data-[state=active]:text-black data-[state=active]:font-semibold text-xs transition-all">
+              Inactive
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
+
       <DataTable
         dataRows={memberList}
         isLoading={isLoading}
