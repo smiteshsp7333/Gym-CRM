@@ -36,8 +36,8 @@ export const GYM_BRANDING: GymBrandingConfig = {
   phone: "+91 98201 12345",
   email: "contact@gymdemo.in",
   trainerName: "Head Coach & Training Team",
-  logoDark: "/synergy.png",
-  logoLight: "/synergy-light.png",
+  logoDark: "/logo.png",
+  logoLight: "/logo-light.png",
   currency: "₹",
   adminCredentials: {
     username: "admin",

@@ -1,122 +1,93 @@
-# 🏋️‍♂️ Gym Management Software – atharvaarbat-gym-5
+# Gym-CRM
 
-A full-featured, modern Gym Management Platform built with **Next.js**, **TypeScript**, **Prisma**, and **Tailwind CSS**. This project is a comprehensive tool for gym owners and trainers to manage members, attendance, sales, enquiries, diet plans, workout tracking, and much more – all from a responsive and intuitive dashboard.
+> Enterprise-grade gym management, athlete retention, and automated operations platform.
 
----
-
-![Plot](screenshots/1%20(1).png)
-![.](screenshots/1%20(2).png)
-![.](screenshots/1%20(3).png)
-![.](screenshots/1%20(4).png)
-![.](screenshots/1%20(5).png)
-![.](screenshots/1%20(6).png)
-
-## 🔧 Tech Stack
-
-| Category       | Technology                          |
-|----------------|--------------------------------------|
-| Frontend       | React, Next.js (App Router), Tailwind CSS |
-| Styling        | TailwindCSS, ShadCN UI               |
-| Backend        | Next.js API Actions (Server Actions) |
-| Database       | PostgreSQL (via Prisma ORM)          |
-| Auth & Session | JWT-based authentication             |
-| UI Components  | ShadCN UI, Lucide Icons              |
-| State/Utils    | React hooks, utility modules         |
-| Deployment     | Vercel (ideal), Docker-ready         |
+A modern, high-performance web platform built with **Next.js 15 (App Router)**, **TypeScript**, **Prisma ORM**, and **PostgreSQL**. Designed for modern fitness centers, clubs, and athletic training facilities to streamline memberships, billing, attendance, lead pipelines, and personalized nutrition plans.
 
 ---
 
-## 📦 Features
+## Key Capabilities
 
-### 👥 Member Management
-- Register new members
-- View, edit, or delete member details
-- Track attendance history
-- Birthday tracking
-- View individual workout records
-
-### 📅 Attendance
-- Mark and view daily attendance
-- Attendance summary per member
-- Attendance history tab for reports
-
-### 🏋️‍♀️ Exercise & Workout Management
-- Create, edit and list exercises
-- Assign workout plans per user
-- Exercise data input system with categorized JSON structure
-
-### 🥗 Diet Management
-- Manage food items
-- Create personalized diet plans
-- Diet planner with dynamic input system
-
-### 💰 Sales & Invoicing
-- Manage gym service sales
-- Generate and view invoices per sale
-- Handle follow-ups and pending payments
-
-### 📞 Enquiry Management
-- Record and follow up on potential client enquiries
-- Manage enquiry status and track conversions
-
-### 💼 Services
-- Add new services offered by the gym (e.g., personal training, Zumba, etc.)
-
-### 📊 Dashboard & Analytics
-- Summary charts
-- Performance insights
-- Custom tools: BMI, BMR, WHR calculators
-
-### ✅ To-Do & Task Management
-- Inbuilt to-do tracker for staff or admins
-
-### 🛠 Tools Section
-- Health metric calculators (BMI, BMR, WHR)
+- **Executive Analytics Dashboard**: Real-time revenue tracking, active athlete counts, daily check-in velocity, and membership tier distribution.
+- **Athlete Management**: Complete member directory, profile lifecycles, attendance streaks, and birthday alerts.
+- **Biometric & Floor Attendance**: Instant check-in logger with real-time floor occupancy feeds and historical logging.
+- **Billing, Invoicing & GST Accounting**: Instant invoice generation, pending payment tracking, and 1-click WhatsApp payment reminders.
+- **Lead Generation Pipeline**: Multi-channel lead tracking (Walk-in, Phone, Instagram, WhatsApp) with scheduled trial workouts and follow-up alerts.
+- **Diet & Nutrition Engine**: Custom meal planning, caloric macronutrient calculations, and WhatsApp delivery templates.
+- **Executive Authentication**: Minimalist split-screen authentication featuring automated role detection for administrators and athletes.
 
 ---
 
-## 🚀 Getting Started
+## Technology Stack
+
+| Component | Specification |
+|:---|:---|
+| **Framework** | Next.js 15 (App Router) with React 19 |
+| **Language** | TypeScript (ES2022) |
+| **Database** | PostgreSQL |
+| **ORM** | Prisma ORM 6 |
+| **Icons** | Lucide React (100% pure icon system) |
+| **Styling** | Tailwind CSS with CSS Variables & Dark Theme |
+| **Components** | Radix UI primitives & custom styled surfaces |
+| **Deployment** | Vercel Serverless / Edge ready |
+
+---
+
+## Getting Started
 
 ### Prerequisites
-- Node.js 18+
-- PostgreSQL (locally or remote)
-- Optional: Docker (for containerization)
 
-### Setup
+- Node.js 18.18+ or 20+
+- PostgreSQL database (Local or Cloud e.g. Neon, Supabase, Railway)
+- npm package manager
 
-```bash
-# Clone the repository
-git clone https://github.com/atharvaarbat/gym-5.git
-cd atharvaarbat-gym-5
+### Installation
 
-# Install dependencies
-npm install
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/smiteshsp7333/Gym-CRM.git
+   cd Gym-CRM
+   ```
 
-# Setup environment variables
-cp .env.example .env
-# Add your DB credentials and JWT secret etc.
+2. **Install dependencies**:
+   ```bash
+   npm install
+   ```
 
-# Push database schema
-npx prisma db push
+3. **Configure Environment Variables**:
+   Create a `.env` file in the root directory:
+   ```env
+   DATABASE_URL="postgresql://username:password@localhost:5432/gym_crm?schema=public"
+   DIRECT_URL="postgresql://username:password@localhost:5432/gym_crm?schema=public"
+   JWT_SECRET="your-secure-jwt-secret-key-32-chars-minimum"
+   ```
 
-# Run the development server
-npm run dev
-````
+4. **Initialize Database Schema**:
+   ```bash
+   npx prisma db push
+   ```
+
+5. **Start Local Development Server**:
+   ```bash
+   npm run dev
+   ```
+
+Open [http://localhost:3000](http://localhost:3000) to view the application.
 
 ---
 
-## 🧠 Why this project?
+## Deployment on Vercel
 
-This project was built to demonstrate:
-
-* Full-stack application architecture using modern tools
-* Real-world state and data management
-* Clean component-based structure
-* Reusable hooks and custom logic
-* Scalable code patterns ideal for production
-* Business logic via server actions (Next.js App Router)
+1. Push your code to your GitHub repository: `https://github.com/smiteshsp7333/Gym-CRM`.
+2. Navigate to [vercel.com/new](https://vercel.com/new) and select **Gym-CRM**.
+3. In the **Environment Variables** section, configure:
+   - `DATABASE_URL`: Hosted PostgreSQL connection URL with connection pooling (e.g. Neon Serverless Postgres).
+   - `DIRECT_URL`: Direct PostgreSQL connection URL (port 5432).
+   - `JWT_SECRET`: Random 32+ character secret string.
+4. Click **Deploy**. Vercel will automatically run `prisma generate` and `next build`.
 
 ---
 
+## License
 
-**Crafted with 💪 by Atharva Arbat**
+This project is licensed under the MIT License.

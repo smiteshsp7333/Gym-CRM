@@ -33,11 +33,11 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <head>
-        <meta property="og:image" content="/synergy.png"/>
+        <meta property="og:image" content="/logo.png"/>
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="627" />
         <link rel="manifest" href="/manifest.json" />
-        <link rel="apple-touch-icon" href="/fav.png"/>
+        <link rel="apple-touch-icon" href="/logo.png"/>
       </head>
       <body
         className={`antialiased`}

@@ -79,7 +79,7 @@ const Invoice = ({
                 {/* Header */}
                 <div className="flex justify-between items-start mb-10">
                     <div>
-                        <img src="/synergy.png" alt="Logo" className="h-16 mb-4" />
+                        <img src="/logo.png" alt="Logo" className="h-16 mb-4 object-contain rounded-xl" />
                         <h1 className="text-black text-lg">{invoiceData.gym.name}</h1>
                         <p className="text-gray-600">{invoiceData.gym.address}</p>
                         <p className="text-gray-600">Contact: {invoiceData.gym.contact}</p>
