@@ -118,17 +118,24 @@ const DeleteColumn = [
   },
 ];
 
+import { DUMMY_SALES } from "@/lib/dummy-data";
+
 const SalesPage = (props: Props) => {
-  const [salesList, setSalesList] = useState<SalesResponse[]>([]);
+  const [salesList, setSalesList] = useState<any[]>(DUMMY_SALES);
   const { showLoading, hideLoading, isLoading } = useLoading();
 
   useEffect(() => {
     async function fetchData() {
       try {
         const data = await GetAllSalesWithExpand();
-        setSalesList(data || []);
+        if (Array.isArray(data) && data.length > 0) {
+          setSalesList(data);
+        } else {
+          setSalesList(DUMMY_SALES);
+        }
       } catch (err) {
-        console.error(err);
+        console.warn("Using dummy sales for testing:", err);
+        setSalesList(DUMMY_SALES);
       } finally {
         hideLoading();
       }

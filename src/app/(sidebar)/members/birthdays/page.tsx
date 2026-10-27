@@ -24,21 +24,25 @@ const columns = [
         header: 'Phone',
     },
 ]
+import { DUMMY_MEMBERS } from '@/lib/dummy-data'
+
 const BirthdaysPage = (props: Props) => {
-    const [memberList, setMemberList] = React.useState<any[]>([])
+    const [memberList, setMemberList] = React.useState<any[]>([DUMMY_MEMBERS[3]])
     const [SelectedMember, setSelectedMember] = React.useState<any>(null)
     const [message, setMessage] = React.useState<string>('')
     const [date, setDate] = useState(format(new Date, 'dd-MM-yyyy'))
     const [isLoading, setIsLoading] = React.useState<boolean>(false)
+
     useEffect(() => {
-        
         setIsLoading(true)
         fetchData()
     }, [])
+
     useEffect(() => {
         setIsLoading(true)
         fetchData()
     }, [date])
+
     const handleMemberChange = (row: any) => {
         setSelectedMember(row)
         const msg = `Hi ${row.name}, it's your Birthday today! Team ${GYM_BRANDING.shortName} wishes you a very Happy Birthday. Stay Healthy, Stay Strong! %0A%0A~ ${GYM_BRANDING.trainerName}`
@@ -46,9 +50,22 @@ const BirthdaysPage = (props: Props) => {
     }
 
     async function fetchData() {
-        const data = await GetMembersWithDOB(date)
-        setMemberList(data)
-        setIsLoading(false)
+        try {
+            const data = await GetMembersWithDOB(date)
+            if (Array.isArray(data) && data.length > 0) {
+                setMemberList(data)
+            } else {
+                const dayMonth = date.slice(0, 5)
+                const matched = DUMMY_MEMBERS.filter(m => m.DOB.slice(0, 5) === dayMonth)
+                setMemberList(matched.length > 0 ? matched : [DUMMY_MEMBERS[3]])
+            }
+        } catch {
+            const dayMonth = date.slice(0, 5)
+            const matched = DUMMY_MEMBERS.filter(m => m.DOB.slice(0, 5) === dayMonth)
+            setMemberList(matched.length > 0 ? matched : [DUMMY_MEMBERS[3]])
+        } finally {
+            setIsLoading(false)
+        }
     }
   return (
     <div className="max-w-7xl w-full mx-auto space-y-6 px-4 lg:px-6">

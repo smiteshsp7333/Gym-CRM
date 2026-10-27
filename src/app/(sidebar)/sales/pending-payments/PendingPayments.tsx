@@ -46,18 +46,37 @@ const columns = [
   },
 ];
 
+import { DUMMY_SALES } from "@/lib/dummy-data";
+
 const PendingPayments = ({}: Props) => {
-  const [data, setData] = useState<any>();
-  const [isLoading, setIsLoading] = useState(true);
+  const dummyPendingList = DUMMY_SALES.filter((s) => s.dueAmount > 0).map((s) => ({
+    id: s.id,
+    member_name: s.member_name,
+    member_phone: s.member_phone,
+    service_name: s.service_name,
+    due: s.dueAmount,
+  }));
+  const dummyTotal = dummyPendingList.reduce((acc, s) => acc + s.due, 0);
+
+  const [data, setData] = useState<any>({
+    total: dummyTotal,
+    sales: dummyPendingList,
+  });
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     setIsLoading(true);
     const fetchData = async () => {
       try {
         const pendingPayments = await GetSalesWithPendingAmount();
-        setData(pendingPayments);
+        if (pendingPayments && Array.isArray(pendingPayments.sales) && pendingPayments.sales.length > 0) {
+          setData(pendingPayments);
+        } else {
+          setData({ total: dummyTotal, sales: dummyPendingList });
+        }
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.warn("Using dummy pending payments for testing:", error);
+        setData({ total: dummyTotal, sales: dummyPendingList });
       } finally {
         setIsLoading(false);
       }

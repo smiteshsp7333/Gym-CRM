@@ -12,33 +12,53 @@ import Link from "next/link";
 import React, { useEffect } from "react";
 import { toast } from "sonner";
 
+import { DUMMY_MEMBERS, DUMMY_ATTENDANCE } from "@/lib/dummy-data";
+
 type Props = {};
 
 const AttendancePage = (props: Props) => {
   const { showLoading, hideLoading } = useLoading();
-  const [memberList, setMemberList] = React.useState<any[]>([]);
+  const [memberList, setMemberList] = React.useState<any[]>(DUMMY_MEMBERS);
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [selectedMember, setSelectedMember] = React.useState<string>();
-  const [attendanceList, setAttendanceList] = React.useState<any[]>([]);
+  const [attendanceList, setAttendanceList] = React.useState<any[]>(DUMMY_ATTENDANCE);
   const [refresh, setRefresh] = React.useState<boolean>(false);
+
   useEffect(() => {
     async function fetchData() {
-      const data = await GetAllMembers();
-      setMemberList(data);
+      try {
+        const data = await GetAllMembers();
+        if (Array.isArray(data) && data.length > 0) {
+          setMemberList(data);
+        } else {
+          setMemberList(DUMMY_MEMBERS);
+        }
+      } catch {
+        setMemberList(DUMMY_MEMBERS);
+      }
     }
     fetchData();
     fetchTodaysAttendance();
   }, []);
+
   useEffect(() => {
     async function fetchData() {
       await fetchTodaysAttendance();
     }
     fetchData();
   }, [refresh]);
+
   async function fetchTodaysAttendance() {
-    const data = await GetAttendanceByDate(format(new Date(), "dd-MM-yyyy"));
-    console.log(data);
-    setAttendanceList(data);
+    try {
+      const data = await GetAttendanceByDate(format(new Date(), "dd-MM-yyyy"));
+      if (Array.isArray(data) && data.length > 0) {
+        setAttendanceList(data);
+      } else {
+        setAttendanceList(DUMMY_ATTENDANCE);
+      }
+    } catch {
+      setAttendanceList(DUMMY_ATTENDANCE);
+    }
   }
   const handleCheckIn = async () => {
     showLoading();

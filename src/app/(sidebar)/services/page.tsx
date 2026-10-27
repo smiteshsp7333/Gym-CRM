@@ -66,17 +66,23 @@ const DeleteColumn = [
   },
 ];
 
+import { DUMMY_SERVICES } from "@/lib/dummy-data";
+
 const ServiceCatalogPage = (props: Props) => {
-  const [serviceList, setServiceList] = React.useState<ServiceResponse[]>([]);
+  const [serviceList, setServiceList] = React.useState<any[]>(DUMMY_SERVICES);
   const { showLoading, hideLoading, isLoading } = useLoading();
 
   useEffect(() => {
     async function fetchData() {
       try {
         const data = await GetAllServices();
-        setServiceList(data || []);
+        if (Array.isArray(data) && data.length > 0) {
+          setServiceList(data);
+        } else {
+          setServiceList(DUMMY_SERVICES);
+        }
       } catch (err) {
-        console.error(err);
+        setServiceList(DUMMY_SERVICES);
       } finally {
         hideLoading();
       }

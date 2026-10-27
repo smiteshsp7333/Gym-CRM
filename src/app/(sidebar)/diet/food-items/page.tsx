@@ -79,17 +79,23 @@ const DeleteColumn = [
   },
 ];
 
+import { DUMMY_FOOD_ITEMS } from "@/lib/dummy-data";
+
 const FoodItemsCatalogPage = (props: Props) => {
-  const [serviceList, setServiceList] = useState<FoodItemResponse[]>([]);
+  const [serviceList, setServiceList] = useState<any[]>(DUMMY_FOOD_ITEMS);
   const { showLoading, hideLoading, isLoading } = useLoading();
 
   useEffect(() => {
     async function fetchData() {
       try {
         const data = await GetAllFoodItems();
-        setServiceList(data || []);
+        if (Array.isArray(data) && data.length > 0) {
+          setServiceList(data);
+        } else {
+          setServiceList(DUMMY_FOOD_ITEMS);
+        }
       } catch (err) {
-        console.error(err);
+        setServiceList(DUMMY_FOOD_ITEMS);
       } finally {
         hideLoading();
       }

@@ -40,29 +40,6 @@ export function SiteHeader() {
             <span>{todayFormatted}</span>
           </div>
 
-          {/* Quick Pitch Demo Seeder */}
-          <button
-            onClick={async () => {
-              try {
-                const res = await fetch("/api/seed", { method: "POST" });
-                const data = await res.json();
-                if (data.success) {
-                  alert("✨ Pitch Demo Data Primed! 28 Members, Services & Sales loaded.");
-                  window.location.reload();
-                } else {
-                  alert(data.error || "Failed to load demo data.");
-                }
-              } catch (e: any) {
-                alert("Error: " + e.message);
-              }
-            }}
-            title="Populate 28 Indian athletes, plans, sales and attendance for client presentation"
-            className="hidden sm:inline-flex items-center gap-1.5 h-8 px-3 rounded-full border border-[#ccff00]/30 bg-[#ccff00]/10 hover:bg-[#ccff00]/20 text-xs font-semibold text-[#ccff00] hover:text-white transition-all shadow-sm active:scale-[0.98] cursor-pointer"
-          >
-            <Sparkles className="size-3.5 text-[#ccff00]" />
-            <span className="hidden xl:inline">Seed Demo</span>
-          </button>
-
           {/* Quick Create Member */}
           <Link
             href="/members/new"

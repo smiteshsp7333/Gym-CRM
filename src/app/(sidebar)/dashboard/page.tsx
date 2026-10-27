@@ -8,6 +8,8 @@ import { ServiceDonutChart } from "@/components/dashboard/ServiceDonutChart"
 import { OperationalPanels } from "@/components/dashboard/OperationalPanels"
 import { format, parse, differenceInDays } from "date-fns"
 
+import { DUMMY_MEMBERS, DUMMY_SALES, DUMMY_ATTENDANCE } from "@/lib/dummy-data"
+
 export const dynamic = "force-dynamic"
 
 export default async function DashboardPage() {
@@ -15,11 +17,11 @@ export default async function DashboardPage() {
 
   // Parallel data fetching for instant response without waterfalls
   const [
-    allMembers,
-    activeMembers,
-    pendingData,
-    allSales,
-    todayAttendance,
+    fetchedMembers,
+    fetchedActive,
+    fetchedPending,
+    fetchedSales,
+    fetchedAttendance,
   ] = await Promise.all([
     GetAllMembers().catch(() => []),
     getAllActiveMembers().catch(() => []),
@@ -27,6 +29,24 @@ export default async function DashboardPage() {
     GetAllSalesWithExpand().catch(() => []),
     GetAttendanceByDate(todayStr).catch(() => []),
   ])
+
+  const allMembers = fetchedMembers?.length > 0 ? fetchedMembers : DUMMY_MEMBERS
+  const activeMembers = fetchedActive?.length > 0 ? fetchedActive : DUMMY_MEMBERS.filter((m) => m.activeServiceName)
+  const allSales = fetchedSales?.length > 0 ? fetchedSales : DUMMY_SALES
+  const todayAttendance = fetchedAttendance?.length > 0 ? fetchedAttendance : DUMMY_ATTENDANCE
+  const pendingData =
+    fetchedPending?.sales?.length > 0
+      ? fetchedPending
+      : {
+          total: DUMMY_SALES.filter((s) => s.dueAmount > 0).reduce((a, b) => a + b.dueAmount, 0),
+          sales: DUMMY_SALES.filter((s) => s.dueAmount > 0).map((s) => ({
+            id: s.id,
+            amount: s.amount,
+            paid: s.paid,
+            member: s.member,
+            service: s.service,
+          })),
+        }
 
   // Calculate gross revenue
   const totalRevenue = allSales.reduce(

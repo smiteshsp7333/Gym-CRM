@@ -53,6 +53,8 @@ export async function AddService(data: ServiceInput): Promise<ServiceResponse> {
     }
 }
 
+import { DUMMY_SERVICES } from '@/lib/dummy-data';
+
 // 2. GetAllServices
 export async function GetAllServices(): Promise<ServiceResponse[]> {
     try {
@@ -60,12 +62,17 @@ export async function GetAllServices(): Promise<ServiceResponse[]> {
             orderBy: { createdAt: 'desc' },
         });
 
+        if (!services || services.length === 0) {
+            return DUMMY_SERVICES as any;
+        }
+
         return services.map((service) => ({
             ...service,
             description: service.description ?? undefined,
         }));
     } catch (error:any) {
-        throw new Error(`Failed to fetch services: ${error.message}`);
+        console.warn("Using DUMMY_SERVICES fallback:", error);
+        return DUMMY_SERVICES as any;
     }
 }
 
@@ -77,7 +84,7 @@ export async function GetServiceById(id: string): Promise<ServiceResponse | null
         });
 
         if (!service) {
-            return null;
+            return (DUMMY_SERVICES.find(s => s.id === id) || DUMMY_SERVICES[0]) as any;
         }
 
         return {
@@ -85,7 +92,7 @@ export async function GetServiceById(id: string): Promise<ServiceResponse | null
             description: service.description ?? undefined,
         };
     } catch (error:any) {
-        throw new Error(`Failed to fetch service: ${error.message}`);
+        return (DUMMY_SERVICES.find(s => s.id === id) || DUMMY_SERVICES[0]) as any;
     }
 }
 

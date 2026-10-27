@@ -73,14 +73,24 @@ const columns = [
   },
 ];
 
+import { DUMMY_ENQUIRIES } from "@/lib/dummy-data";
+
 const EnquiryPage = (props: Props) => {
-  const [enquiries, setEnquiries] = useState<EnquiryResponse[]>([]);
+  const [enquiries, setEnquiries] = useState<any[]>(DUMMY_ENQUIRIES);
   const { isLoading } = useLoading();
 
   useEffect(() => {
     const fetchData = async () => {
-      const data = await GetAllEnquiry();
-      setEnquiries(data || []);
+      try {
+        const data = await GetAllEnquiry();
+        if (Array.isArray(data) && data.length > 0) {
+          setEnquiries(data);
+        } else {
+          setEnquiries(DUMMY_ENQUIRIES);
+        }
+      } catch (err) {
+        setEnquiries(DUMMY_ENQUIRIES);
+      }
     };
     fetchData();
   }, []);

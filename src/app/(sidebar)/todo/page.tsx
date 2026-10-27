@@ -29,8 +29,10 @@ interface Todo {
   createdAt: Date;
 }
 
+import { DUMMY_TODOS } from '@/lib/dummy-data';
+
 const TodoPage: React.FC = () => {
-  const [todos, setTodos] = useState<Todo[]>([]);
+  const [todos, setTodos] = useState<Todo[]>(DUMMY_TODOS);
   const [newTodo, setNewTodo] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
@@ -39,17 +41,21 @@ const TodoPage: React.FC = () => {
     const storedTodos = localStorage.getItem('todos');
     if (storedTodos) {
       try {
-        // Parse the stored todos and ensure dates are properly converted back to Date objects
         const parsedTodos = JSON.parse(storedTodos).map((todo: any) => ({
           ...todo,
           createdAt: new Date(todo.createdAt)
         }));
-        setTodos(parsedTodos);
+        if (parsedTodos.length > 0) {
+          setTodos(parsedTodos);
+        } else {
+          setTodos(DUMMY_TODOS);
+        }
       } catch (error) {
         console.error('Failed to parse todos from localStorage:', error);
-        
-        toast.error("There was a problem loading your saved todos.");
+        setTodos(DUMMY_TODOS);
       }
+    } else {
+      setTodos(DUMMY_TODOS);
     }
     setIsLoading(false);
   }, []);

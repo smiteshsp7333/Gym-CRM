@@ -14,6 +14,7 @@ import {
 import { SalesResponse } from "./sales.action";
 import { constants } from "buffer";
 import { normalizeToDdMmYyyy } from "@/lib/utils";
+import { DUMMY_MEMBERS } from "@/lib/dummy-data";
 // import { Gender } from '@prisma/client';
 type Gender = "male" | "female" | "other";
 // Type definitions
@@ -139,7 +140,8 @@ export async function GetMemberById(
     });
 
     if (!member) {
-      return null;
+      const fallback = DUMMY_MEMBERS.find((m) => m.id === id) || DUMMY_MEMBERS[0];
+      return fallback as any;
     }
 
     return {
@@ -149,7 +151,8 @@ export async function GetMemberById(
       address: member.address ?? undefined,
     } as any;
   } catch (error: any) {
-    throw new Error(`Failed to fetch member: ${error.message}`);
+    const fallback = DUMMY_MEMBERS.find((m) => m.id === id) || DUMMY_MEMBERS[0];
+    return fallback as any;
   }
 }
 
@@ -183,6 +186,9 @@ export async function GetAllMembers(): Promise<MemberResponse[]> {
     const members = await prisma.member.findMany({
       orderBy: { createdAt: "desc" },
     });
+    if (!members || members.length === 0) {
+      return DUMMY_MEMBERS as any;
+    }
     return members.map((member: any) => ({
       ...member,
       phone: member.phone ? member.phone.toString() : "",
@@ -190,8 +196,8 @@ export async function GetAllMembers(): Promise<MemberResponse[]> {
       address: member.address ?? undefined,
     })) as any;
   } catch (error: any) {
-    console.error("Failed to fetch members:", error);
-    return [];
+    console.warn("Using DUMMY_MEMBERS fallback:", error);
+    return DUMMY_MEMBERS as any;
   }
 }
 
@@ -324,13 +330,23 @@ export async function GetMembersWithDOB(
         },
       },
     });
+
+    if (!members || members.length === 0) {
+      const matched = DUMMY_MEMBERS.filter(m => m.DOB.slice(0, 5) === SlicedDate);
+      return (matched.length > 0 ? matched : [DUMMY_MEMBERS[3]]) as any;
+    }
+
     return members.map((member: any) => ({
       ...member,
+      phone: member.phone ? member.phone.toString() : "",
       email: member.email ?? undefined,
       address: member.address ?? undefined,
-    }));
+    })) as any;
   } catch (error: any) {
-    throw new Error(`Failed to fetch members with DOB: ${error.message}`);
+    console.warn("Using dummy birthday members fallback:", error);
+    const SlicedDate = date.slice(0, 5);
+    const matched = DUMMY_MEMBERS.filter(m => m.DOB.slice(0, 5) === SlicedDate);
+    return (matched.length > 0 ? matched : [DUMMY_MEMBERS[3]]) as any;
   }
 }
 
@@ -352,7 +368,11 @@ export async function getAllMembersWithActiveSale(): Promise<
       orderBy: { createdAt: "desc" },
     });
 
-    return members.map((member) => {
+    if (!members || members.length === 0) {
+      return DUMMY_MEMBERS as any;
+    }
+
+    const mapped = members.map((member) => {
       // Find the most recent active sale
       const activeSale =
         member.sales
@@ -394,9 +414,11 @@ export async function getAllMembersWithActiveSale(): Promise<
         age: calculatedAge,
       };
     });
+
+    return mapped.length > 0 ? mapped : (DUMMY_MEMBERS as any);
   } catch (error: any) {
-    console.error("Error in getAllMembersWithActiveSale:", error);
-    return [];
+    console.warn("Using DUMMY_MEMBERS fallback:", error);
+    return DUMMY_MEMBERS as any;
   }
 }
 
@@ -415,6 +437,10 @@ export async function getAllInActiveMembers(): Promise<any[]> {
       },
       orderBy: { createdAt: "desc" },
     });
+
+    if (!members || members.length === 0) {
+      return DUMMY_MEMBERS.filter((m) => !m.activeServiceName) as any;
+    }
 
     const inactiveMembers = members.reduce((result: any[], member) => {
       const activeSale = member.sales.find((sale) => {
@@ -449,10 +475,10 @@ export async function getAllInActiveMembers(): Promise<any[]> {
       return result;
     }, []);
 
-    return inactiveMembers;
+    return inactiveMembers.length > 0 ? inactiveMembers : (DUMMY_MEMBERS.filter((m) => !m.activeServiceName) as any);
   } catch (error: any) {
-    console.error("Error in getAllInActiveMembers:", error);
-    return [];
+    console.warn("Using DUMMY_MEMBERS fallback:", error);
+    return DUMMY_MEMBERS.filter((m) => !m.activeServiceName) as any;
   }
 }
 
@@ -471,6 +497,10 @@ export async function getAllActiveMembers(): Promise<any[]> {
       },
       orderBy: { createdAt: "desc" },
     });
+
+    if (!members || members.length === 0) {
+      return DUMMY_MEMBERS.filter((m) => m.activeServiceName) as any;
+    }
 
     const activeMembers = members.reduce((result: any[], member) => {
       const activeSale = member.sales.find((sale) => {
@@ -507,10 +537,10 @@ export async function getAllActiveMembers(): Promise<any[]> {
       return result;
     }, []);
 
-    return activeMembers;
+    return activeMembers.length > 0 ? activeMembers : (DUMMY_MEMBERS.filter((m) => m.activeServiceName) as any);
   } catch (error: any) {
-    console.error("Error in getAllActiveMembers:", error);
-    return [];
+    console.warn("Using DUMMY_MEMBERS fallback:", error);
+    return DUMMY_MEMBERS.filter((m) => m.activeServiceName) as any;
   }
 }
 

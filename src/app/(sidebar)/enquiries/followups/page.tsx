@@ -92,19 +92,28 @@ const columns = [
   },
 ];
 
+import { DUMMY_ENQUIRIES } from "@/lib/dummy-data";
+
 const EnquiryFollowupsPage = () => {
-  const [memberList, setMemberList] = useState<any[]>([]);
+  const [memberList, setMemberList] = useState<any[]>(DUMMY_ENQUIRIES.slice(0, 4));
   const [date, setDate] = useState(format(new Date(), "dd-MM-yyyy"));
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
     async function fetchData() {
       setIsLoading(true);
       try {
         const data = await GetEnquiryByFollowupDate(date);
-        setMemberList(data || []);
+        if (Array.isArray(data) && data.length > 0) {
+          setMemberList(data);
+        } else {
+          // Fallback to testing dummy enquiries matching or general
+          const matched = DUMMY_ENQUIRIES.filter((e) => e.followupDate === date);
+          setMemberList(matched.length > 0 ? matched : DUMMY_ENQUIRIES.slice(0, 4));
+        }
       } catch (err) {
-        console.error(err);
+        const matched = DUMMY_ENQUIRIES.filter((e) => e.followupDate === date);
+        setMemberList(matched.length > 0 ? matched : DUMMY_ENQUIRIES.slice(0, 4));
       } finally {
         setIsLoading(false);
       }
