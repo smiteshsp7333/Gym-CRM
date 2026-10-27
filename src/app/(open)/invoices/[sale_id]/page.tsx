@@ -55,7 +55,7 @@ const Invoice = ({
             setSaleData(sale)
         }
         fetchData()
-    }, [])
+    }, [sale_id])
 
     const invoiceData = {
         invoiceNumber: "INV-2025-0042",

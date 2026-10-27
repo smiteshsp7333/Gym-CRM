@@ -15,7 +15,7 @@ import { toast } from 'sonner'
 
 type Props = {}
 
-const page = (props: Props) => {
+const FitnessRecordPage = (props: Props) => {
     const [members, setMembers] = React.useState<MemberResponse[]>([])
     const [services, setServices] = React.useState<ServiceResponse[]>([])
     const [selected, setSelected] = React.useState({
@@ -151,4 +151,4 @@ const page = (props: Props) => {
     )
 }
 
-export default page
+export default FitnessRecordPage

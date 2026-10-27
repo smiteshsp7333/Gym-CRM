@@ -104,7 +104,7 @@ const WorkoutsList = ({ AllExercise }: Props) => {
                             <ListFilter className="h-12 w-12 text-muted-foreground mb-4" />
                             <h3 className="text-lg font-medium">No exercises found</h3>
                             <p className="text-muted-foreground mt-2">
-                                Try adjusting your search or filter to find what you're looking for.
+                                Try adjusting your search or filter to find what you&apos;re looking for.
                             </p>
                         </div>
                     ) : (

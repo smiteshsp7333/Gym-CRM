@@ -39,7 +39,7 @@ const columns = [
         header: 'Service',
     },
 ]
-const page = (props: Props) => {
+const SalesFollowupsPage = (props: Props) => {
     const [salesList, setSalesList] = React.useState<any[]>([])
     const [days, setDays] = useState(0)
     const [SelectedSale, setSelectedSale] = useState<any>(null)
@@ -166,6 +166,6 @@ const page = (props: Props) => {
     )
 }
 
-export default page
+export default SalesFollowupsPage
 
 // https://api.whatsapp.com/send?phone=918698969798&text=Hello%20%0ABrother

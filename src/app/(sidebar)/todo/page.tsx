@@ -261,7 +261,7 @@ const TodoItem: React.FC<TodoItemProps> = ({ todo, toggleTodo, deleteTodo }) => 
               <AlertDialogHeader>
                 <AlertDialogTitle>Delete task?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This will remove "{todo.text}". This action cannot be undone.
+                  This will remove &quot;{todo.text}&quot;. This action cannot be undone.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>

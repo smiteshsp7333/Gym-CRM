@@ -203,7 +203,7 @@ const ExercisePage = ({
                             </li>
                             <li className="flex items-start">
                                 <ChevronRight className="h-5 w-5 text-blue-500 mr-2 mt-0.5" />
-                                <span>Don't force the stretch beyond your comfort zone.</span>
+                                <span>Don&apos;t force the stretch beyond your comfort zone.</span>
                             </li>
                             <li className="flex items-start">
                                 <ChevronRight className="h-5 w-5 text-blue-500 mr-2 mt-0.5" />

@@ -9,7 +9,7 @@ import React, { useEffect } from 'react'
 
 type Props = {}
 
-const page = (props: Props) => {
+const SalesInvoicesPage = (props: Props) => {
     const [members, setMembers] = React.useState<MemberResponse[]>([])
     const [selectedMember, setSelectedMember] = React.useState<any>({})
     useEffect(() => {
@@ -39,4 +39,4 @@ const page = (props: Props) => {
     )
 }
 
-export default page
+export default SalesInvoicesPage

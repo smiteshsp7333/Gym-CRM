@@ -11,7 +11,7 @@ import { toast } from 'sonner'
 
 type Props = {}
 
-const page = (props: Props) => {
+const ChangePasswordPage = (props: Props) => {
     const [formState, setFormState] = React.useState({
         oldPassword: "",
         newPassword: "",
@@ -104,4 +104,4 @@ const page = (props: Props) => {
     )
 }
 
-export default page
+export default ChangePasswordPage

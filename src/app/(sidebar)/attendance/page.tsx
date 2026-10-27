@@ -14,7 +14,7 @@ import { toast } from "sonner";
 
 type Props = {};
 
-const page = (props: Props) => {
+const AttendancePage = (props: Props) => {
   const { showLoading, hideLoading } = useLoading();
   const [memberList, setMemberList] = React.useState<any[]>([]);
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
@@ -116,7 +116,7 @@ const page = (props: Props) => {
       <Card className="rounded-3xl bg-[#12141c] border border-white/[0.08] shadow-2xl p-6">
         <CardHeader className="p-0 mb-4 flex flex-row items-center justify-between">
           <div>
-            <CardTitle className="text-lg font-bold text-white">Today's Check-in Feed</CardTitle>
+            <CardTitle className="text-lg font-bold text-white">Today&apos;s Check-in Feed</CardTitle>
             <p className="text-xs text-slate-400 mt-0.5">Live chronological stream of floor entries</p>
           </div>
           <span className="text-xs font-medium text-slate-400 bg-white/[0.04] px-3 py-1 rounded-full border border-white/[0.06]">
@@ -163,4 +163,4 @@ const page = (props: Props) => {
   );
 };
 
-export default page;
+export default AttendancePage;

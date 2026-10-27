@@ -24,7 +24,7 @@ const columns = [
         header: 'Phone',
     },
 ]
-const page = (props: Props) => {
+const BirthdaysPage = (props: Props) => {
     const [memberList, setMemberList] = React.useState<any[]>([])
     const [SelectedMember, setSelectedMember] = React.useState<any>(null)
     const [message, setMessage] = React.useState<string>('')
@@ -109,4 +109,4 @@ const page = (props: Props) => {
   )
 }
 
-export default page
+export default BirthdaysPage
