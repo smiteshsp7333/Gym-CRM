@@ -42,52 +42,70 @@ const columns = [
 const MemberPage = (props: Props) => {
   const router = useRouter();
   const [memberList, setMemberList] = React.useState<any[]>([]);
-  const [value, setValue] = React.useState<string>("");
-  // const [isLoading, setIsLoading] = React.useState<boolean>(false)
+  const [value, setValue] = React.useState<string>("0");
+  const [isSeeding, setIsSeeding] = React.useState<boolean>(false);
   const { showLoading, hideLoading, isLoading } = useLoading();
-  useEffect(() => {
-    async function fetchData() {
-      const data = await getAllMembersWithActiveSale();
-      // console.log(await getAllActiveMembers())
-      setMemberList(data);
-      hideLoading();
-    }
+
+  const loadData = React.useCallback(async (tabValue: string) => {
     showLoading();
-    fetchData();
-  }, []);
-  useEffect(() => {
-    async function fetchData() {
-      if (value === "0") {
-        const data = await getAllMembersWithActiveSale();
-        setMemberList(data);
-        hideLoading();
-        return;
-      } else if (value === "1") {
-        const data = await getAllActiveMembers();
-        setMemberList(data);
-        hideLoading();
-        return;
-      } else if (value === "2") {
-        const data = await getAllInActiveMembers();
-        setMemberList(data);
-        hideLoading();
-        return;
+    try {
+      let data: any[] = [];
+      if (tabValue === "1") {
+        data = await getAllActiveMembers();
+      } else if (tabValue === "2") {
+        data = await getAllInActiveMembers();
+      } else {
+        data = await getAllMembersWithActiveSale();
       }
+      setMemberList(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Failed to fetch member records:", err);
+      toast.error("Could not load athlete records. Check database connection.");
+      setMemberList([]);
+    } finally {
       hideLoading();
     }
+  }, [showLoading, hideLoading]);
+
+  useEffect(() => {
+    loadData(value);
+  }, [value, loadData]);
+
+  const handleSeedPitchData = async (clearExisting = false) => {
+    setIsSeeding(true);
     showLoading();
-    fetchData();
-  }, [value]);
+    try {
+      const res = await fetch("/api/seed", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ clear: clearExisting }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        toast.success("✨ Pitch Demo Dataset Primed! (28 Athletes, Services & Sales Loaded)");
+        await loadData(value);
+      } else {
+        toast.error(json.error || "Failed to initialize pitch dataset.");
+      }
+    } catch (err: any) {
+      console.error("Seeding error:", err);
+      toast.error("Failed to seed database: " + err.message);
+    } finally {
+      setIsSeeding(false);
+      hideLoading();
+    }
+  };
+
   const actionColumn = [
     {
       accessorKey: "id",
       header: "Review",
-      // cellContent: <Button size={"sm"} variant={"secondary"} className='cursor-pointer'><IconFile /></Button>,
       cellContentGetRow: (row: any) => (
         <ReviewButton id={row.id} isDone={row.reviewDone} />
       ),
     },
   ];
+
   return (
     <div className="max-w-7xl w-full mx-auto space-y-6 px-4 lg:px-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -102,7 +120,25 @@ const MemberPage = (props: Props) => {
             Manage athlete memberships, review statuses, and profile records
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <Button
+            onClick={() => handleSeedPitchData(false)}
+            disabled={isSeeding}
+            variant="outline"
+            size="sm"
+            className="h-9 px-3.5 rounded-full border border-[#ccff00]/30 bg-[#ccff00]/10 text-xs font-semibold text-[#ccff00] hover:bg-[#ccff00]/20 hover:text-white transition-all cursor-pointer"
+          >
+            {isSeeding ? (
+              <span className="flex items-center gap-2">
+                <span className="size-3 border-2 border-[#ccff00] border-t-transparent rounded-full animate-spin" />
+                Seeding CRM...
+              </span>
+            ) : (
+              <span className="flex items-center gap-1.5">
+                ⚡ <span>Load Pitch Demo</span>
+              </span>
+            )}
+          </Button>
           <Link
             href="/members/birthdays"
             prefetch={true}
@@ -122,8 +158,37 @@ const MemberPage = (props: Props) => {
         </div>
       </div>
 
+      {/* Pitch Demo Empty State Card */}
+      {!isLoading && memberList.length === 0 && (
+        <div className="rounded-2xl border border-[#ccff00]/30 bg-[#12141c]/90 p-6 md:p-8 backdrop-blur-xl shadow-2xl shadow-black/80 relative overflow-hidden group">
+          <div className="absolute -top-12 -right-12 size-48 rounded-full bg-[#ccff00]/10 blur-3xl group-hover:bg-[#ccff00]/15 transition-all" />
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+            <div className="space-y-2 max-w-xl">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#ccff00]/15 border border-[#ccff00]/30 text-[11px] font-bold text-[#ccff00] uppercase tracking-wider font-mono">
+                Pitch-Ready CRM Database
+              </div>
+              <h2 className="text-xl font-bold text-white tracking-tight">
+                No Athlete Records Found in Cloud Database
+              </h2>
+              <p className="text-xs md:text-sm text-slate-300 leading-relaxed">
+                Presenting to a client? Click below to instantly populate your CRM with 28 realistic Indian athlete profiles, active & expiring plans, pending payment balances, attendance logs, and enquiries.
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
+              <Button
+                onClick={() => handleSeedPitchData(true)}
+                disabled={isSeeding}
+                className="h-11 px-6 rounded-full bg-[#ccff00] text-black hover:bg-[#b8e600] font-extrabold text-xs shadow-lg shadow-[#ccff00]/25 transition-all active:scale-95 cursor-pointer"
+              >
+                {isSeeding ? "Initializing 28 Athletes..." : "✨ Load Pitch Demo Dataset"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center justify-between">
-        <Tabs onValueChange={(e) => setValue(e)} defaultValue="0" className="w-full sm:w-auto">
+        <Tabs onValueChange={(e) => setValue(e)} defaultValue="0" value={value} className="w-full sm:w-auto">
           <TabsList className="bg-[#12141c] border border-white/[0.08] p-1 rounded-full">
             <TabsTrigger value="0" className="rounded-full data-[state=active]:bg-[#ccff00] data-[state=active]:text-black data-[state=active]:font-semibold text-xs transition-all">
               All Members

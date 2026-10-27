@@ -391,19 +391,20 @@ export async function GetAllSalesWithExpand(): Promise<
       description: sale.description ?? null,
       member: {
         ...sale.member,
+        phone: (sale.member as any)?.phone ? (sale.member as any).phone.toString() : "",
         email: sale.member.email ?? null,
       },
       member_name: sale.member.name,
+      member_phone: (sale.member as any)?.phone ? (sale.member as any).phone.toString() : "",
       service_name: sale.service.name,
       service: {
         ...sale.service,
       },
       dueAmount: sale.amount - sale.paid - (sale.discount ?? 0),
-    }));
+    })) as any;
   } catch (error: any) {
-    throw new Error(
-      `Failed to fetch sales with expanded data: ${error.message}`
-    );
+    console.error("Failed to fetch sales with expanded data:", error);
+    return [];
   }
 }
 

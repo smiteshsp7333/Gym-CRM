@@ -106,11 +106,13 @@ export async function GetAllEnquiry(): Promise<EnquiryResponse[]> {
 
     return enquiries.map((enquiry) => ({
       ...enquiry,
+      phone: (enquiry.phone ? enquiry.phone.toString() : "") as any,
       followupDate: enquiry.followupDate ?? undefined,
       message: enquiry.message ?? undefined,
-    }));
-  } catch (error:any) {
-    throw new Error(`Failed to fetch enquiries: ${error.message}`);
+    })) as any;
+  } catch (error: any) {
+    console.error("Failed to fetch enquiries:", error);
+    return [];
   }
 }
 

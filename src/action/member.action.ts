@@ -144,9 +144,10 @@ export async function GetMemberById(
 
     return {
       ...member,
+      phone: (member as any).phone ? (member as any).phone.toString() : "",
       email: member.email ?? undefined,
       address: member.address ?? undefined,
-    };
+    } as any;
   } catch (error: any) {
     throw new Error(`Failed to fetch member: ${error.message}`);
   }
@@ -167,9 +168,10 @@ export async function GetMemberByMemberCode(
 
     return {
       ...member,
+      phone: (member as any).phone ? (member as any).phone.toString() : "",
       email: member.email ?? undefined,
       address: member.address ?? undefined,
-    };
+    } as any;
   } catch (error: any) {
     throw new Error(`Failed to fetch member: ${error.message}`);
   }
@@ -183,11 +185,13 @@ export async function GetAllMembers(): Promise<MemberResponse[]> {
     });
     return members.map((member: any) => ({
       ...member,
+      phone: member.phone ? member.phone.toString() : "",
       email: member.email ?? undefined,
       address: member.address ?? undefined,
-    }));
+    })) as any;
   } catch (error: any) {
-    throw new Error(`Failed to fetch members: ${error.message}`);
+    console.error("Failed to fetch members:", error);
+    return [];
   }
 }
 
@@ -353,17 +357,31 @@ export async function getAllMembersWithActiveSale(): Promise<
       const activeSale =
         member.sales
           .filter((sale) => {
-            const startDate = parse(sale.startDate, "dd-MM-yyyy", new Date());
-            const endDate = parse(sale.endDate, "dd-MM-yyyy", new Date());
-            return isWithinInterval(today, { start: startDate, end: endDate });
+            try {
+              const startDate = parse(normalizeToDdMmYyyy(sale.startDate), "dd-MM-yyyy", new Date());
+              const endDate = parse(normalizeToDdMmYyyy(sale.endDate), "dd-MM-yyyy", new Date());
+              if (!isValid(startDate) || !isValid(endDate)) return false;
+              return isWithinInterval(today, { start: startDate, end: endDate });
+            } catch {
+              return false;
+            }
           })
           .sort(
             (a, b) =>
               new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
           )[0] || null;
 
+      let calculatedAge = 0;
+      try {
+        const parsedDob = parse(normalizeToDdMmYyyy(member.DOB), "dd-MM-yyyy", new Date());
+        if (isValid(parsedDob)) {
+          calculatedAge = differenceInYears(today, parsedDob);
+        }
+      } catch {}
+
       return {
         ...member,
+        phone: member.phone ? member.phone.toString() : "",
         email: member.email ?? undefined,
         address: member.address ?? undefined,
         activeSale: activeSale
@@ -372,17 +390,13 @@ export async function getAllMembersWithActiveSale(): Promise<
             description: activeSale.description ?? undefined,
           }
           : null,
-        activeServiceName: activeSale ? activeSale.service.name : null,
-        age: differenceInYears(
-          today,
-          parse(member.DOB, "dd-MM-yyyy", new Date())
-        ),
+        activeServiceName: activeSale ? activeSale.service?.name : null,
+        age: calculatedAge,
       };
     });
   } catch (error: any) {
-    throw new Error(
-      `Failed to fetch members with active sale: ${error.message}`
-    );
+    console.error("Error in getAllMembersWithActiveSale:", error);
+    return [];
   }
 }
 
@@ -402,37 +416,45 @@ export async function getAllInActiveMembers(): Promise<any[]> {
       orderBy: { createdAt: "desc" },
     });
 
-    // Efficiently filter and map in a single pass
-    const activeMembers = members.reduce((result: any[], member) => {
+    const inactiveMembers = members.reduce((result: any[], member) => {
       const activeSale = member.sales.find((sale) => {
-        const startDate = parse(sale.startDate, "dd-MM-yyyy", new Date());
-        const endDate = parse(sale.endDate, "dd-MM-yyyy", new Date());
-        return isWithinInterval(today, { start: startDate, end: endDate });
+        try {
+          const startDate = parse(normalizeToDdMmYyyy(sale.startDate), "dd-MM-yyyy", new Date());
+          const endDate = parse(normalizeToDdMmYyyy(sale.endDate), "dd-MM-yyyy", new Date());
+          if (!isValid(startDate) || !isValid(endDate)) return false;
+          return isWithinInterval(today, { start: startDate, end: endDate });
+        } catch {
+          return false;
+        }
       });
 
       if (!activeSale) {
+        let calculatedAge = 0;
+        try {
+          const parsedDob = parse(normalizeToDdMmYyyy(member.DOB), "dd-MM-yyyy", new Date());
+          if (isValid(parsedDob)) {
+            calculatedAge = differenceInYears(today, parsedDob);
+          }
+        } catch {}
+
         result.push({
           ...member,
+          phone: member.phone ? member.phone.toString() : "",
           email: member.email ?? undefined,
           address: member.address ?? undefined,
-          age: differenceInYears(
-            today,
-            parse(member.DOB, "dd-MM-yyyy", new Date())
-          ),
+          age: calculatedAge,
         });
       }
 
       return result;
     }, []);
 
-    return activeMembers;
+    return inactiveMembers;
   } catch (error: any) {
-    throw new Error(
-      `Failed to fetch members with active sale: ${error.message}`
-    );
+    console.error("Error in getAllInActiveMembers:", error);
+    return [];
   }
 }
-
 
 export async function getAllActiveMembers(): Promise<any[]> {
   try {
@@ -450,25 +472,35 @@ export async function getAllActiveMembers(): Promise<any[]> {
       orderBy: { createdAt: "desc" },
     });
 
-    // Efficiently filter and map in a single pass
     const activeMembers = members.reduce((result: any[], member) => {
       const activeSale = member.sales.find((sale) => {
-        const startDate = parse(sale.startDate, "dd-MM-yyyy", new Date());
-        const endDate = parse(sale.endDate, "dd-MM-yyyy", new Date());
-        return isWithinInterval(today, { start: startDate, end: endDate });
+        try {
+          const startDate = parse(normalizeToDdMmYyyy(sale.startDate), "dd-MM-yyyy", new Date());
+          const endDate = parse(normalizeToDdMmYyyy(sale.endDate), "dd-MM-yyyy", new Date());
+          if (!isValid(startDate) || !isValid(endDate)) return false;
+          return isWithinInterval(today, { start: startDate, end: endDate });
+        } catch {
+          return false;
+        }
       });
 
       if (activeSale) {
+        let calculatedAge = 0;
+        try {
+          const parsedDob = parse(normalizeToDdMmYyyy(member.DOB), "dd-MM-yyyy", new Date());
+          if (isValid(parsedDob)) {
+            calculatedAge = differenceInYears(today, parsedDob);
+          }
+        } catch {}
+
         result.push({
           ...member,
+          phone: member.phone ? member.phone.toString() : "",
           email: member.email ?? undefined,
           address: member.address ?? undefined,
           activeSale,
           activeServiceName: activeSale.service?.name ?? null,
-          age: differenceInYears(
-            today,
-            parse(member.DOB, "dd-MM-yyyy", new Date())
-          ),
+          age: calculatedAge,
         });
       }
 
@@ -477,9 +509,8 @@ export async function getAllActiveMembers(): Promise<any[]> {
 
     return activeMembers;
   } catch (error: any) {
-    throw new Error(
-      `Failed to fetch members with active sale: ${error.message}`
-    );
+    console.error("Error in getAllActiveMembers:", error);
+    return [];
   }
 }
 
