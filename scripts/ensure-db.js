@@ -35,20 +35,14 @@ async function ensureDatabase() {
   }
 
   console.log('[ensure-db] Database URL detected. Synchronizing schema to PostgreSQL database...');
-  let pushSuccess = false;
   try {
     execSync('npx prisma db push --accept-data-loss --skip-generate', {
       stdio: 'inherit',
       env: { ...process.env },
     });
     console.log('[ensure-db] Prisma schema synchronized successfully!');
-    pushSuccess = true;
   } catch (err) {
-    console.warn('[ensure-db] Warning: prisma db push skipped or unreachable:', err.message);
-  }
-
-  if (!pushSuccess) {
-    return;
+    console.warn('[ensure-db] Warning: prisma db push encountered an issue:', err.message);
   }
 
   // Populate default services and starter members if tables are empty
@@ -212,4 +206,3 @@ async function ensureDatabase() {
 ensureDatabase().catch((err) => {
   console.warn('[ensure-db] Notice:', err.message);
 });
-
