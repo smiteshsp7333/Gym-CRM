@@ -97,6 +97,15 @@ const NewMemberPage = () => {
         phone: cleanPhone,
       });
       if (response?.id) {
+        try {
+          const stored = JSON.parse(localStorage.getItem("gym_members") || "[]");
+          const record = {
+            ...response,
+            phone: cleanPhone,
+            reviewDone: false,
+          };
+          localStorage.setItem("gym_members", JSON.stringify([record, ...stored.filter((m: any) => m.id !== response.id)]));
+        } catch {}
         toast.success(`Member ${formState.name} enrolled successfully!`);
         window.location.href = `/members/${response.id}`;
       } else {

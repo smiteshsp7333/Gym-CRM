@@ -75,67 +75,109 @@ const columns = [
   },
 ];
 
-const DeleteColumn = [
-  {
-    accessorKey: "id",
-    header: "Delete",
-    cellContent: (
-      <Button variant="destructive" size={"icon"} className="cursor-pointer size-8 rounded-lg">
-        <Trash2 className="size-3.5" />
-      </Button>
-    ),
-    onClick: async (rowId: any) => {
-      await DeleteSaleById(rowId);
-      toast.success("Sale invoice record deleted");
-      window.location.reload();
-    },
-  },
-  {
-    accessorKey: "id",
-    header: "Receipt",
-    cellContent: (
-      <Button variant="secondary" size={"icon"} className="cursor-pointer size-8 rounded-lg">
-        <FileText className="size-3.5" />
-      </Button>
-    ),
-    onClickGetRow: (row: any) => {
-      window.open(`/invoices/${row.id}`, "_blank");
-    },
-  },
-  {
-    accessorKey: "id",
-    header: "WhatsApp",
-    cellContent: (
-      <Button className="cursor-pointer size-8 rounded-lg bg-[#25D366] text-black hover:bg-[#20ba59]">
-        <Send className="size-3.5" />
-      </Button>
-    ),
-    onClickGetRow: (row: any) => {
-      const origin = typeof window !== "undefined" ? window.location.origin : GYM_BRANDING.websiteUrl;
-      const message = `Hi ${row.member_name}, your invoice for ${row.service_name} is available. Thank you for choosing ${GYM_BRANDING.name}. Stay healthy, stay strong! %0A%0A${origin}/invoices/${row.id} %0A%0A- Team ${GYM_BRANDING.shortName}`;
-      window.open(`https://api.whatsapp.com/send?phone=91${row.member?.phone || row.member_phone}&text=${message}`);
-    },
-  },
-];
-
 import { DUMMY_SALES } from "@/lib/dummy-data";
 
 const SalesPage = (props: Props) => {
   const [salesList, setSalesList] = useState<any[]>(DUMMY_SALES);
   const { showLoading, hideLoading, isLoading } = useLoading();
 
+  const handleDelete = async (rowId: string) => {
+    try {
+      setSalesList((prev) => prev.filter((s) => s.id !== rowId));
+      try {
+        const stored = JSON.parse(localStorage.getItem("gym_sales") || "[]");
+        const filtered = stored.filter((s: any) => s.id !== rowId);
+        localStorage.setItem("gym_sales", JSON.stringify(filtered));
+      } catch {}
+      await DeleteSaleById(rowId);
+      toast.success("Sale invoice record deleted");
+    } catch {
+      toast.error("Failed to delete sale record");
+    }
+  };
+
+  const DeleteColumn = [
+    {
+      accessorKey: "id",
+      header: "Delete",
+      cellContentGetRow: (row: any) => (
+        <Button
+          variant="destructive"
+          size={"icon"}
+          className="cursor-pointer size-8 rounded-lg"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleDelete(row.id);
+          }}
+        >
+          <Trash2 className="size-3.5" />
+        </Button>
+      ),
+    },
+    {
+      accessorKey: "id",
+      header: "Receipt",
+      cellContentGetRow: (row: any) => (
+        <Button
+          variant="secondary"
+          size={"icon"}
+          className="cursor-pointer size-8 rounded-lg"
+          onClick={(e) => {
+            e.stopPropagation();
+            window.open(`/invoices/${row.id}`, "_blank");
+          }}
+        >
+          <FileText className="size-3.5" />
+        </Button>
+      ),
+    },
+    {
+      accessorKey: "id",
+      header: "WhatsApp",
+      cellContentGetRow: (row: any) => {
+        const origin = typeof window !== "undefined" ? window.location.origin : GYM_BRANDING.websiteUrl;
+        const message = `Hi ${row.member_name}, your invoice for ${row.service_name} is available. Thank you for choosing ${GYM_BRANDING.name}. Stay healthy, stay strong! %0A%0A${origin}/invoices/${row.id} %0A%0A- Team ${GYM_BRANDING.shortName}`;
+        return (
+          <Button
+            className="cursor-pointer size-8 rounded-lg bg-[#25D366] text-black hover:bg-[#20ba59]"
+            onClick={(e) => {
+              e.stopPropagation();
+              window.open(`https://api.whatsapp.com/send?phone=91${row.member?.phone || row.member_phone}&text=${message}`);
+            }}
+          >
+            <Send className="size-3.5" />
+          </Button>
+        );
+      },
+    },
+  ];
+
   useEffect(() => {
     async function fetchData() {
       try {
         const data = await GetAllSalesWithExpand();
-        if (Array.isArray(data) && data.length > 0) {
-          setSalesList(data);
-        } else {
-          setSalesList(DUMMY_SALES);
-        }
+        let combined = Array.isArray(data) && data.length > 0 ? data : DUMMY_SALES;
+        try {
+          const stored = JSON.parse(localStorage.getItem("gym_sales") || "[]");
+          if (Array.isArray(stored) && stored.length > 0) {
+            const storedIds = new Set(stored.map((s: any) => s.id));
+            combined = [...stored, ...combined.filter((s: any) => !storedIds.has(s.id))];
+          }
+        } catch {}
+        setSalesList(combined);
       } catch (err) {
         console.warn("Using dummy sales for testing:", err);
-        setSalesList(DUMMY_SALES);
+        try {
+          const stored = JSON.parse(localStorage.getItem("gym_sales") || "[]");
+          if (Array.isArray(stored) && stored.length > 0) {
+            const storedIds = new Set(stored.map((s: any) => s.id));
+            setSalesList([...stored, ...DUMMY_SALES.filter((s: any) => !storedIds.has(s.id))]);
+          } else {
+            setSalesList(DUMMY_SALES);
+          }
+        } catch {
+          setSalesList(DUMMY_SALES);
+        }
       } finally {
         hideLoading();
       }

@@ -63,9 +63,31 @@ const MemberDetailPage = ({ params }: { params: any }) => {
     showLoading();
     async function fetchData() {
       try {
+        if (typeof window !== "undefined") {
+          const localMembers = localStorage.getItem("gym_members");
+          if (localMembers) {
+            try {
+              const parsed = JSON.parse(localMembers);
+              const found = parsed.find((m: any) => m.id === member_id);
+              if (found) {
+                setFormState({
+                  ...found,
+                  phone: found.phone ? found.phone.toString() : "",
+                  gender: found.gender || "male",
+                });
+                hideLoading();
+                return;
+              }
+            } catch {}
+          }
+        }
         const data = await GetMemberById(member_id);
         if (data) {
-          setFormState(data);
+          setFormState({
+            ...data,
+            phone: data.phone ? data.phone.toString() : "",
+            gender: data.gender || "male",
+          });
         }
       } catch (err) {
         console.error(err);
@@ -97,10 +119,20 @@ const MemberDetailPage = ({ params }: { params: any }) => {
 
     setIsSaving(true);
     try {
-      const response = await UpdateMemberById(member_id, formState as any);
-      if (response?.id) {
-        toast.success("Member profile updated successfully");
+      if (typeof window !== "undefined") {
+        const local = localStorage.getItem("gym_members");
+        if (local) {
+          try {
+            const list = JSON.parse(local);
+            const updated = list.map((m: any) =>
+              m.id === member_id ? { ...m, ...formState } : m
+            );
+            localStorage.setItem("gym_members", JSON.stringify(updated));
+          } catch {}
+        }
       }
+      await UpdateMemberById(member_id, formState as any);
+      toast.success("Member profile updated successfully");
     } catch {
       toast.error("Failed to update member");
     } finally {

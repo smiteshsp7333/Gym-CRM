@@ -51,8 +51,46 @@ const Invoice = ({
     const [saleData, setSaleData] = React.useState<ExpandedSalesResponse>()
     useEffect(() => {
         async function fetchData() {
+            // Check localStorage first for fresh sales
+            try {
+                const storedSales = JSON.parse(localStorage.getItem("gym_sales") || "[]");
+                const localSale = storedSales.find((s: any) => s.id === sale_id);
+                if (localSale) {
+                    setSaleData({
+                        id: localSale.id,
+                        member_id: localSale.member_id || "mem-001",
+                        service_id: localSale.service_id || "srv-001",
+                        description: localSale.description || "Gym Membership Sale",
+                        discount: localSale.discount || 0,
+                        amount: localSale.amount || 8500,
+                        paid: localSale.paid || 8500,
+                        startDate: localSale.startDate || "15-01-2026",
+                        endDate: localSale.endDate || "15-07-2026",
+                        createdAt: new Date(),
+                        updatedAt: new Date(),
+                        member: {
+                            id: localSale.member_id || "mem-001",
+                            name: localSale.member_name || "Gym Member",
+                            memberCode: "MEM-001",
+                            email: "member@gymdemo.in",
+                            phone: localSale.member_phone || "9820110025",
+                            address: "100 Feet Road, Indiranagar, Bengaluru",
+                        },
+                        service: {
+                            id: localSale.service_id || "srv-001",
+                            name: localSale.service_name || "Gym Membership Plan",
+                            price: localSale.amount || 8500,
+                            duration: 6,
+                        },
+                    } as any);
+                    return;
+                }
+            } catch {}
+
             const sale = await GetSaleWithExpand(sale_id)
-            setSaleData(sale)
+            if (sale) {
+                setSaleData(sale)
+            }
         }
         fetchData()
     }, [sale_id])

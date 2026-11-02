@@ -123,6 +123,19 @@ const NewSalePage = () => {
     try {
       const response = await AddSales(formState);
       if (response?.id) {
+        try {
+          const stored = JSON.parse(localStorage.getItem("gym_sales") || "[]");
+          const mem = members.find((m) => m.id === formState.member_id) || selectedMember;
+          const srv = services.find((s) => s.id === formState.service_id) || selectedService;
+          const record = {
+            ...response,
+            member_name: mem?.name || "Gym Member",
+            member_phone: mem?.phone || "9820110025",
+            service_name: srv?.name || "Membership Plan",
+            dueAmount: Math.max(0, formState.amount - formState.discount - formState.paid),
+          };
+          localStorage.setItem("gym_sales", JSON.stringify([record, ...stored]));
+        } catch {}
         toast.success("Sale invoice processed successfully!");
         window.location.href = `/sales`;
       } else {

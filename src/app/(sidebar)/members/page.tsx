@@ -59,27 +59,50 @@ const MemberPage = (props: Props) => {
         data = await getAllMembersWithActiveSale();
       }
 
-      if (Array.isArray(data) && data.length > 0) {
-        setMemberList(data);
-      } else {
-        // Test dummy data fallback
+      if (!Array.isArray(data) || data.length === 0) {
         if (tabValue === "1") {
-          setMemberList(DUMMY_MEMBERS.filter((m) => m.activeServiceName));
+          data = DUMMY_MEMBERS.filter((m) => m.activeServiceName);
         } else if (tabValue === "2") {
-          setMemberList(DUMMY_MEMBERS.filter((m) => !m.activeServiceName));
+          data = DUMMY_MEMBERS.filter((m) => !m.activeServiceName);
         } else {
-          setMemberList(DUMMY_MEMBERS);
+          data = [...DUMMY_MEMBERS];
         }
       }
+
+      // Merge freshly registered members from localStorage
+      if (typeof window !== "undefined") {
+        const local = localStorage.getItem("gym_members");
+        if (local) {
+          try {
+            const parsed = JSON.parse(local);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              const existingIds = new Set(data.map((m: any) => m.id));
+              const fresh = parsed.filter((m: any) => !existingIds.has(m.id));
+              data = [...fresh, ...data];
+
+              // Apply review status from local overrides
+              const localMap = new Map(parsed.map((m: any) => [m.id, m]));
+              data = data.map((m: any) => {
+                const over = localMap.get(m.id);
+                return over && typeof over.reviewDone === "boolean"
+                  ? { ...m, reviewDone: over.reviewDone }
+                  : m;
+              });
+            }
+          } catch {}
+        }
+      }
+
+      setMemberList(data);
     } catch (err) {
       console.warn("Using fallback dummy members for testing:", err);
+      let data = [...DUMMY_MEMBERS];
       if (tabValue === "1") {
-        setMemberList(DUMMY_MEMBERS.filter((m) => m.activeServiceName));
+        data = DUMMY_MEMBERS.filter((m) => m.activeServiceName);
       } else if (tabValue === "2") {
-        setMemberList(DUMMY_MEMBERS.filter((m) => !m.activeServiceName));
-      } else {
-        setMemberList(DUMMY_MEMBERS);
+        data = DUMMY_MEMBERS.filter((m) => !m.activeServiceName);
       }
+      setMemberList(data);
     } finally {
       hideLoading();
     }
@@ -165,26 +188,46 @@ export default MemberPage;
 const ReviewButton = ({ id, isDone }: { id: string; isDone: boolean }) => {
   const [isTick, setIsTick] = React.useState(isDone);
   const [loading, setLoading] = React.useState(false);
-  const updateReview = async (status: boolean) => {
+
+  React.useEffect(() => {
+    setIsTick(isDone);
+  }, [isDone]);
+
+  const updateReview = async (e: React.MouseEvent, status: boolean) => {
+    e.stopPropagation();
     setLoading(true);
-    const res = await updateReviewStatus(id, status);
-    if (res.success) {
-      setIsTick(status);
+    setIsTick(status);
+
+    if (typeof window !== "undefined") {
+      try {
+        const local = localStorage.getItem("gym_members");
+        if (local) {
+          const list = JSON.parse(local);
+          const updated = list.map((m: any) =>
+            m.id === id ? { ...m, reviewDone: status } : m
+          );
+          localStorage.setItem("gym_members", JSON.stringify(updated));
+        }
+      } catch {}
+    }
+
+    try {
+      await updateReviewStatus(id, status);
+      toast.success(status ? "Member review verified" : "Review reset to pending");
+    } catch {
+      // optimistic update maintained
+    } finally {
       setLoading(false);
-      return;
-    } else {
-      toast.error("Failed to update review");
-      setLoading(false);
-      return;
     }
   };
+
   if (!isTick) {
     return (
       <Button
         size={"icon"}
         variant={"destructive"}
         className="cursor-pointer"
-        onClick={() => updateReview(true)}
+        onClick={(e) => updateReview(e, true)}
       >
         {!loading ? (
           <X size={16} className="" />
@@ -199,14 +242,13 @@ const ReviewButton = ({ id, isDone }: { id: string; isDone: boolean }) => {
         size={"icon"}
         variant={"default"}
         className="cursor-pointer"
-        onClick={() => updateReview(false)}
+        onClick={(e) => updateReview(e, false)}
       >
         {!loading ? (
           <Check size={16} />
         ) : (
           <div className="animate-spin rounded-full h-4 w-4 border-l-2 border-b-2 border-white"></div>
         )}
-        
       </Button>
     );
   }
