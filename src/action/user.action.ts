@@ -43,6 +43,13 @@ export async function getAllDetailsOfMember(member_id: string) {
       where: { member_id: member_id },
     });
 
-    return { user, activeSales, inActiveSales, allAttendanceOfMember };
+    const formattedUser = user
+      ? {
+          ...user,
+          phone: user.phone ? user.phone.toString() : "",
+        }
+      : null;
+
+    return { user: formattedUser, activeSales, inActiveSales, allAttendanceOfMember };
   } catch (error) {}
 }

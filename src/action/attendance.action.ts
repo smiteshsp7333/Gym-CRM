@@ -2,6 +2,7 @@
 
 import prisma  from '@/lib/prisma';
 import { format, parse, isValid, isToday } from 'date-fns';
+import { DUMMY_MEMBERS, DUMMY_ATTENDANCE } from '@/lib/dummy-data';
 
 // Type definitions
 export interface AttendanceInput {
@@ -37,12 +38,33 @@ export async function AddAttendance(data: AttendanceInput): Promise<AttendanceRe
       throw new Error('Invalid date format. Use dd-MM-yyyy');
     }
 
-    // Check if member exists
-    const member = await prisma.member.findUnique({
+    // Check if member exists (resilient fallback & upsert)
+    let member = await prisma.member.findUnique({
       where: { id: data.member_id },
     });
     if (!member) {
-      throw new Error('Member not found');
+      const dummyMem = DUMMY_MEMBERS.find((m) => m.id === data.member_id);
+      if (dummyMem) {
+        const cleanPhone = BigInt(dummyMem.phone ? dummyMem.phone.toString().replace(/\D/g, "") : "9820110025");
+        member = await prisma.member.upsert({
+          where: { memberCode: dummyMem.memberCode || `MEM${Math.floor(100000 + Math.random() * 900000)}` },
+          update: {},
+          create: {
+            id: dummyMem.id,
+            name: dummyMem.name,
+            email: dummyMem.email || null,
+            memberCode: dummyMem.memberCode || `MEM${Math.floor(100000 + Math.random() * 900000)}`,
+            phone: cleanPhone,
+            address: dummyMem.address || "Main City",
+            DOB: dummyMem.DOB || "01-01-2000",
+            gender: (dummyMem.gender as any) || "male",
+            DOJ: dummyMem.DOJ || "01-01-2026",
+          },
+        });
+        data.member_id = member.id;
+      } else {
+        throw new Error('Member not found');
+      }
     }
 
     // Check if attendance already exists for this member on this date
@@ -71,8 +93,6 @@ export async function AddAttendance(data: AttendanceInput): Promise<AttendanceRe
     throw new Error(`Failed to add attendance: ${error.message}`);
   }
 }
-
-import { DUMMY_ATTENDANCE } from '@/lib/dummy-data';
 
 // 2. GetTodaysAttendance
 export async function GetTodaysAttendance(): Promise<AttendanceResponse[]> {

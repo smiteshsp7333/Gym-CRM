@@ -57,8 +57,8 @@ const NewServicePage = () => {
       } else {
         toast.error("Failed to create service plan");
       }
-    } catch {
-      toast.error("An error occurred while creating service");
+    } catch (err: any) {
+      toast.error(err.message || "An error occurred while creating service");
     } finally {
       setIsSubmitting(false);
     }

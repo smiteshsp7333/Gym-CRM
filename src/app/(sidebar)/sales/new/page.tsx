@@ -128,8 +128,8 @@ const NewSalePage = () => {
       } else {
         toast.error("Failed to record sale");
       }
-    } catch {
-      toast.error("An error occurred while creating the sale");
+    } catch (err: any) {
+      toast.error(err.message || "An error occurred while creating the sale");
     } finally {
       setIsSubmitting(false);
       hideLoading();

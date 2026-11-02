@@ -32,21 +32,22 @@ const NewEnquiryPage = () => {
 
   const [formState, setFormState] = useState<EnquiryInput>({
     name: "",
-    phone: BigInt(0),
+    phone: "",
     followupDate: format(new Date(Date.now() + 86400000 * 2), "dd-MM-yyyy"),
     message: "Interested in annual strength training + cardio",
     type: "walkin",
   });
 
   const handleInputChange = (e: any, field: keyof EnquiryInput) => {
-    setFormState((prev) => ({ ...prev, [field]: e }));
+    const val = field === "phone" ? e.toString().replace(/\D/g, "") : e;
+    setFormState((prev) => ({ ...prev, [field]: val }));
   };
 
   const handleQuickDemoEnquiry = () => {
     const random = Math.floor(1000 + Math.random() * 9000);
     setFormState({
       name: "Aditya Verma",
-      phone: BigInt(`9892${random}`),
+      phone: `9892${random}`,
       followupDate: format(new Date(Date.now() + 86400000 * 2), "dd-MM-yyyy"),
       message: "Looking for personal training & weight loss package for 6 months",
       type: "instagram",
@@ -60,7 +61,8 @@ const NewEnquiryPage = () => {
       toast.error("Please fill in lead name and phone number");
       return;
     }
-    if (formState.phone.toString().length !== 10) {
+    const cleanPhone = formState.phone.toString().replace(/\D/g, "");
+    if (cleanPhone.length !== 10) {
       toast.error("Phone number must be exactly 10 digits");
       return;
     }
@@ -69,15 +71,18 @@ const NewEnquiryPage = () => {
     showLoading();
 
     try {
-      const response = await AddEnquiry(formState);
+      const response = await AddEnquiry({
+        ...formState,
+        phone: cleanPhone,
+      });
       if (response?.id) {
         toast.success(`Enquiry from ${formState.name} saved to pipeline!`);
         window.location.href = `/enquiries`;
       } else {
         toast.error("Failed to add enquiry");
       }
-    } catch {
-      toast.error("An error occurred while saving enquiry");
+    } catch (err: any) {
+      toast.error(err.message || "An error occurred while saving enquiry");
     } finally {
       setIsSubmitting(false);
       hideLoading();
@@ -186,7 +191,7 @@ const NewEnquiryPage = () => {
                   maxLength={10}
                   required
                   value={formState.phone ? formState.phone.toString() : ""}
-                  onChange={(e) => handleInputChange(BigInt(e.target.value || "0"), "phone")}
+                  onChange={(e) => handleInputChange(e.target.value, "phone")}
                   className="h-12 rounded-xl bg-zinc-900/80 border-zinc-800 focus:border-[#ccff00] text-zinc-100 placeholder-zinc-500 text-sm font-mono pr-10"
                 />
                 <Phone className="absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400 pointer-events-none" />

@@ -22,7 +22,7 @@ export interface MemberInput {
   name: string;
   email?: string;
   memberCode: string;
-  phone: number;
+  phone: number | string;
   address?: string;
   DOB: string; // Format: dd-MM-yyyy
   gender: Gender;
@@ -34,7 +34,7 @@ export interface MemberResponse {
   name: string;
   email?: string | null;
   memberCode: string;
-  phone: bigint;
+  phone: string;
   address?: string | null;
   DOB: string;
   gender: Gender;
@@ -51,8 +51,9 @@ const validateDateFormat = (dateStr: string): boolean => {
 };
 
 // Helper function to validate phone number
-const validatePhone = (phone: number): boolean => {
-  return phone.toString().length === 10;
+const validatePhone = (phone: number | string): boolean => {
+  const digits = phone.toString().replace(/\D/g, "");
+  return digits.length === 10;
 };
 
 // 1. AddMember
@@ -96,8 +97,9 @@ export async function AddMember(data: MemberInput): Promise<MemberResponse> {
       throw new Error("Missing required fields");
     }
 
-    if (!validatePhone(Number(data.phone))) {
-      throw new Error("Phone number must be 10 digits");
+    const cleanPhone = data.phone.toString().replace(/\D/g, "");
+    if (cleanPhone.length !== 10) {
+      throw new Error("Phone number must be exactly 10 digits");
     }
 
     if (!validateDateFormat(data.DOB) || !validateDateFormat(data.DOJ)) {
@@ -109,11 +111,11 @@ export async function AddMember(data: MemberInput): Promise<MemberResponse> {
 
     const member = await prisma.member.create({
       data: {
-        name: data.name,
-        email: data.email,
+        name: data.name.trim(),
+        email: data.email?.trim() || null,
         memberCode, // Use the generated code
-        phone: Number(data.phone),
-        address: data.address,
+        phone: BigInt(cleanPhone),
+        address: data.address?.trim() || null,
         DOB: normalizeToDdMmYyyy(data.DOB),
         gender: data.gender,
         DOJ: normalizeToDdMmYyyy(data.DOJ),
@@ -121,9 +123,17 @@ export async function AddMember(data: MemberInput): Promise<MemberResponse> {
     });
 
     return {
-      ...member,
+      id: member.id,
+      name: member.name,
       email: member.email ?? undefined,
+      memberCode: member.memberCode,
+      phone: member.phone.toString(),
       address: member.address ?? undefined,
+      DOB: member.DOB,
+      gender: member.gender as Gender,
+      DOJ: member.DOJ,
+      createdAt: member.createdAt,
+      updatedAt: member.updatedAt,
     };
   } catch (error: any) {
     throw new Error(`Failed to add member: ${error.message}`);
@@ -255,24 +265,36 @@ export async function UpdateMemberById(
       }
     }
 
+    const cleanPhone = data.phone
+      ? BigInt(data.phone.toString().replace(/\D/g, ""))
+      : undefined;
+
     const member = await prisma.member.update({
       where: { id },
       data: {
-        name: data.name,
-        email: data.email,
+        name: data.name?.trim(),
+        email: data.email?.trim() || null,
         memberCode: data.memberCode,
-        phone: data.phone,
-        address: data.address,
-        DOB: data.DOB,
+        phone: cleanPhone,
+        address: data.address?.trim() || null,
+        DOB: data.DOB ? normalizeToDdMmYyyy(data.DOB) : undefined,
         gender: data.gender,
-        DOJ: data.DOJ,
+        DOJ: data.DOJ ? normalizeToDdMmYyyy(data.DOJ) : undefined,
       },
     });
 
     return {
-      ...member,
+      id: member.id,
+      name: member.name,
       email: member.email ?? undefined,
+      memberCode: member.memberCode,
+      phone: member.phone ? member.phone.toString() : "",
       address: member.address ?? undefined,
+      DOB: member.DOB,
+      gender: member.gender as Gender,
+      DOJ: member.DOJ,
+      createdAt: member.createdAt,
+      updatedAt: member.updatedAt,
     };
   } catch (error: any) {
     throw new Error(`Failed to update member: ${error.message}`);
@@ -307,9 +329,17 @@ export async function GetMembersWithTodaysBirthday(): Promise<
     });
 
     return members.map((member: any) => ({
-      ...member,
+      id: member.id,
+      name: member.name,
       email: member.email ?? undefined,
+      memberCode: member.memberCode,
+      phone: member.phone ? member.phone.toString() : "",
       address: member.address ?? undefined,
+      DOB: member.DOB,
+      gender: member.gender as Gender,
+      DOJ: member.DOJ,
+      createdAt: member.createdAt,
+      updatedAt: member.updatedAt,
     }));
   } catch (error: any) {
     throw new Error(

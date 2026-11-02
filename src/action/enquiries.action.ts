@@ -9,7 +9,7 @@ type EnquiryType = 'call' | 'walkin' | 'instagram' | 'whatsapp';
 
 export interface EnquiryInput {
   name: string;
-  phone: bigint;
+  phone: string | number;
   followupDate?: string; // Format: dd-MM-yyyy
   message?: string;
   type: EnquiryType;
@@ -18,7 +18,7 @@ export interface EnquiryInput {
 export interface EnquiryResponse {
   id: string;
   name: string;
-  phone: bigint;
+  phone: string;
   followupDate?: string | null;
   message?: string | null;
   type: EnquiryType;
@@ -34,8 +34,9 @@ const validateDateFormat = (dateStr: string): boolean => {
 };
 
 // Helper function to validate phone number
-const validatePhone = (phone: bigint): boolean => {
-  return phone.toString().length === 10;
+const validatePhone = (phone: string | number): boolean => {
+  const digits = phone.toString().replace(/\D/g, "");
+  return digits.length === 10;
 };
 
 // 1. AddEnquiry
@@ -46,8 +47,9 @@ export async function AddEnquiry(data: EnquiryInput): Promise<EnquiryResponse> {
       throw new Error('Missing required fields');
     }
 
-    if (!validatePhone(data.phone)) {
-      throw new Error('Phone number must be 10 digits');
+    const cleanPhone = data.phone.toString().replace(/\D/g, "");
+    if (cleanPhone.length !== 10) {
+      throw new Error('Phone number must be exactly 10 digits');
     }
 
     if (data.followupDate && !validateDateFormat(data.followupDate)) {
@@ -58,18 +60,23 @@ export async function AddEnquiry(data: EnquiryInput): Promise<EnquiryResponse> {
 
     const enquiry = await prisma.enquiry.create({
       data: {
-        name: data.name,
-        phone: Number(data.phone),
+        name: data.name.trim(),
+        phone: BigInt(cleanPhone),
         followupDate: normalizedFollowup,
-        message: data.message,
+        message: data.message?.trim() || null,
         type: data.type,
       },
     });
 
     return {
-      ...enquiry,
+      id: enquiry.id,
+      name: enquiry.name,
+      phone: enquiry.phone.toString(),
       followupDate: enquiry.followupDate ?? undefined,
       message: enquiry.message ?? undefined,
+      type: enquiry.type,
+      createdAt: enquiry.createdAt,
+      updatedAt: enquiry.updatedAt,
     };
   } catch (error:any) {
     throw new Error(`Failed to add enquiry: ${error.message}`);
@@ -88,9 +95,14 @@ export async function GetEnquiryById(id: string): Promise<EnquiryResponse | null
     }
 
     return {
-      ...enquiry,
+      id: enquiry.id,
+      name: enquiry.name,
+      phone: enquiry.phone ? enquiry.phone.toString() : "",
       followupDate: enquiry.followupDate ?? undefined,
       message: enquiry.message ?? undefined,
+      type: enquiry.type,
+      createdAt: enquiry.createdAt,
+      updatedAt: enquiry.updatedAt,
     };
   } catch (error:any) {
     throw new Error(`Failed to fetch enquiry: ${error.message}`);

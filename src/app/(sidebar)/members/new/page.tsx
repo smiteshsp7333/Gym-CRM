@@ -42,7 +42,7 @@ const NewMemberPage = () => {
 
   const [formState, setFormState] = useState<MemberInput>({
     name: "",
-    phone: 0,
+    phone: "",
     email: "",
     memberCode: "",
     gender: "male",
@@ -52,7 +52,8 @@ const NewMemberPage = () => {
   });
 
   const handleInputChange = (e: any, field: keyof FormState) => {
-    setFormState((prev) => ({ ...prev, [field]: e }));
+    const val = field === "phone" ? e.replace(/\D/g, "") : e;
+    setFormState((prev) => ({ ...prev, [field]: val }));
   };
 
   const handleGenderChange = (value: Gender) => {
@@ -64,7 +65,7 @@ const NewMemberPage = () => {
     const randomNum = Math.floor(1000 + Math.random() * 9000);
     setFormState({
       name: "Vikram Malhotra",
-      phone: parseInt(`9810${randomNum}`),
+      phone: `9810${randomNum}`,
       email: `vikram.m${randomNum}@gmail.com`,
       memberCode: `MEM-${randomNum}`,
       gender: "male",
@@ -81,7 +82,8 @@ const NewMemberPage = () => {
       toast.error("Please fill all the required fields");
       return;
     }
-    if (formState.phone.toString().length !== 10) {
+    const cleanPhone = formState.phone.toString().replace(/\D/g, "");
+    if (cleanPhone.length !== 10) {
       toast.error("Phone number must be exactly 10 digits");
       return;
     }
@@ -90,15 +92,18 @@ const NewMemberPage = () => {
     showLoading();
 
     try {
-      const response = await AddMember(formState);
+      const response = await AddMember({
+        ...formState,
+        phone: cleanPhone,
+      });
       if (response?.id) {
         toast.success(`Member ${formState.name} enrolled successfully!`);
         window.location.href = `/members/${response.id}`;
       } else {
         toast.error("Failed to enroll member");
       }
-    } catch (err) {
-      toast.error("An error occurred while enrolling the member");
+    } catch (err: any) {
+      toast.error(err.message || "An error occurred while enrolling the member");
     } finally {
       setIsSubmitting(false);
       hideLoading();

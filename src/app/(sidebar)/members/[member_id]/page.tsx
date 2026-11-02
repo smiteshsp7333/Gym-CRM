@@ -47,7 +47,7 @@ const MemberDetailPage = ({ params }: { params: any }) => {
     name: "",
     email: "",
     memberCode: "",
-    phone: BigInt(0),
+    phone: "",
     address: "",
     DOB: "",
     gender: "male",
