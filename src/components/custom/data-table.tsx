@@ -2,16 +2,14 @@
 import {
     Table,
     TableBody,
-    TableCaption,
     TableCell,
-    TableFooter,
     TableHead,
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
 import { Input } from "../ui/input"
 import { useState, useMemo, ReactNode } from "react"
-import { LoaderCircleIcon, Search } from "lucide-react"
+import { Search } from "lucide-react"
 
 interface Props {
     dataRows: any[],
@@ -19,7 +17,8 @@ interface Props {
         accessorKey: string,
         header: string,
         headerClassName?: string,
-        cellClassName?: string
+        cellClassName?: string,
+        cellContentGetRow?: (row: any) => React.ReactNode,
     }[],
     actionColumns?: {
         accessorKey: string,
@@ -51,7 +50,6 @@ export function DataTable({
         return dataRows.filter(row => {
             return columns.some(column => {
                 const value = row[column.accessorKey]
-                // Convert to string if not already and handle null/undefined
                 const stringValue = value !== null && value !== undefined
                     ? String(value)
                     : ''
@@ -59,6 +57,8 @@ export function DataTable({
             })
         })
     }, [dataRows, columns, searchTerm])
+
+    const totalCols = columns.length + (actionColumns?.length || 0) + 1;
 
     return (
         <div className="space-y-4">
@@ -100,14 +100,28 @@ export function DataTable({
                     {
                         isLoading ? (
                             <TableBody>
-                                <TableRow>
-                                    <TableCell colSpan={(columns.length + (actionColumns?.length || 0) + 1)} className="text-center py-12">
-                                        <div className="flex items-center justify-center gap-2 text-sm text-slate-400">
-                                            <LoaderCircleIcon className="size-5 animate-spin text-[#ccff00]" />
-                                            <span>Loading records...</span>
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
+                                {[1, 2, 3, 4, 5].map((idx) => (
+                                    <TableRow key={idx} className="border-b border-white/[0.04]">
+                                        <TableCell className="ps-4 py-3.5">
+                                            <div className="h-4 w-5 bg-white/5 animate-pulse rounded" />
+                                        </TableCell>
+                                        {columns.map((col) => (
+                                            <TableCell key={col.accessorKey} className="py-3.5">
+                                                <div
+                                                    className={`h-4 bg-white/[0.06] animate-pulse rounded-md ${
+                                                        col.accessorKey === "name" ? "w-36" : "w-24"
+                                                    }`}
+                                                />
+                                            </TableCell>
+                                        ))}
+                                        {actionColumns &&
+                                            actionColumns.map((_, aIdx) => (
+                                                <TableCell key={aIdx} className="py-3.5">
+                                                    <div className="h-7 w-8 bg-white/[0.04] animate-pulse rounded-lg" />
+                                                </TableCell>
+                                            ))}
+                                    </TableRow>
+                                ))}
                             </TableBody>
                         ) : (
                             <TableBody>
@@ -122,7 +136,7 @@ export function DataTable({
                                                         className={`text-sm text-slate-200 py-3.5 ${column.cellClassName || ''}`}
                                                         onClick={() => onItemClick && onItemClick(row)}
                                                     >
-                                                        {row[column.accessorKey]}
+                                                        {column.cellContentGetRow ? column.cellContentGetRow(row) : row[column.accessorKey]}
                                                     </TableCell>
                                                 ))
                                             }
@@ -144,7 +158,7 @@ export function DataTable({
                                     ))
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={(columns.length + (actionColumns?.length || 0) + 1)} className="text-center py-10 text-sm text-slate-500">
+                                        <TableCell colSpan={totalCols} className="text-center py-10 text-sm text-slate-500">
                                             No matching records found.
                                         </TableCell>
                                     </TableRow>

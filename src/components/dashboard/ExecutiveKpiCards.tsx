@@ -9,6 +9,7 @@ import {
   CalendarCheck2,
   AlertCircle,
   ArrowRight,
+  Sparkles,
 } from "lucide-react";
 
 interface KpiProps {
@@ -41,9 +42,9 @@ export function ExecutiveKpiCards({
           <div className="size-10 rounded-2xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-[#ccff00]">
             <Wallet className="size-5" />
           </div>
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#ccff00]/10 text-[#ccff00] border border-[#ccff00]/25">
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
             <ArrowUpRight className="size-3.5" />
-            +23.4%
+            +14.2% this month
           </span>
         </div>
         <div>
@@ -58,7 +59,7 @@ export function ExecutiveKpiCards({
         </div>
         {/* Neon Lime Sparkline SVG wave */}
         <div className="mt-4 pt-2 border-t border-white/[0.04] flex items-center justify-between text-xs text-slate-400">
-          <span>This month vs last</span>
+          <span>Monthly renewals sparkline</span>
           <svg className="w-24 h-6 text-[#ccff00]" viewBox="0 0 100 25" fill="none">
             <path
               d="M0 20 Q 20 5, 40 15 T 70 8 T 100 2"
@@ -151,13 +152,13 @@ export function ExecutiveKpiCards({
           <div className="size-10 rounded-2xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-rose-400">
             <AlertCircle className="size-5" />
           </div>
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-400/10 text-rose-400 border border-rose-400/25 font-mono">
-            {pendingDuesCount} Pending
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-500/15 text-rose-400 border border-rose-500/30 font-mono">
+            ₹{pendingDuesAmount.toLocaleString("en-IN")} Pending Collections
           </span>
         </div>
         <div>
           <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">
-            Pending Dues
+            Pending Dues ({pendingDuesCount} athletes)
           </p>
           <div className="flex items-baseline gap-2 mt-1">
             <h3 className="text-2xl lg:text-3xl font-bold tracking-tight text-rose-300 tabular-nums">

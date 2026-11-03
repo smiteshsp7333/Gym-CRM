@@ -23,6 +23,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import Link from "next/link";
+import { addStoreEnquiry } from "@/lib/gym-store";
 import { GYM_BRANDING } from "@/config/branding";
 import { format } from "date-fns";
 
@@ -71,16 +72,25 @@ const NewEnquiryPage = () => {
     showLoading();
 
     try {
-      const response = await AddEnquiry({
-        ...formState,
+      // 1. Add to unified store
+      const newEnquiry = addStoreEnquiry({
+        name: formState.name,
         phone: cleanPhone,
+        type: formState.type,
+        followupDate: formState.followupDate || "",
+        message: formState.message,
       });
-      if (response?.id) {
-        toast.success(`Enquiry from ${formState.name} saved to pipeline!`);
-        window.location.href = `/enquiries`;
-      } else {
-        toast.error("Failed to add enquiry");
-      }
+
+      // 2. Background sync to server action
+      try {
+        AddEnquiry({
+          ...formState,
+          phone: cleanPhone,
+        }).catch(() => {});
+      } catch {}
+
+      toast.success(`Enquiry from ${formState.name} saved to pipeline!`);
+      window.location.href = `/enquiries`;
     } catch (err: any) {
       toast.error(err.message || "An error occurred while saving enquiry");
     } finally {

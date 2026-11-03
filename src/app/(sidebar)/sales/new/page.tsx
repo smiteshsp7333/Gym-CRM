@@ -1,15 +1,13 @@
 "use client";
 
-import { GetAllMembers, MemberResponse } from "@/action/member.action";
 import { AddSales, SalesInput } from "@/action/sales.action";
-import { GetAllServices, ServiceResponse } from "@/action/service.action";
 import { DatePickerDemo } from "@/components/custom/date-picker";
 import ItemSelector from "@/components/custom/item-selector";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useLoading } from "@/hooks/use-loading";
-import React, { useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
   CreditCard,
@@ -26,12 +24,23 @@ import {
   AlertCircle,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { GYM_BRANDING } from "@/config/branding";
 import { format } from "date-fns";
+import {
+  getStoreMembers,
+  getStoreServices,
+  getStoreMemberById,
+  addStoreSale,
+} from "@/lib/gym-store";
 
-const NewSalePage = () => {
-  const [members, setMembers] = useState<MemberResponse[]>([]);
-  const [services, setServices] = useState<ServiceResponse[]>([]);
+function NewSaleForm() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const preselectedMemberId = searchParams.get("member_id") || "";
+
+  const [members, setMembers] = useState<any[]>([]);
+  const [services, setServices] = useState<any[]>([]);
   const [selectedMember, setSelectedMember] = useState<any>(null);
   const [selectedService, setSelectedService] = useState<any>(null);
   const [paymentMode, setPaymentMode] = useState<"UPI" | "Cash" | "Card">("UPI");
@@ -39,7 +48,7 @@ const NewSalePage = () => {
 
   const { showLoading, hideLoading } = useLoading();
   const [formState, setFormState] = useState<SalesInput>({
-    member_id: "",
+    member_id: preselectedMemberId,
     service_id: "",
     description: "Annual Gym Membership",
     discount: 0,
@@ -49,20 +58,27 @@ const NewSalePage = () => {
   });
 
   useEffect(() => {
-    async function fetchData() {
-      try {
-        const [memData, srvData] = await Promise.all([
-          GetAllMembers(),
-          GetAllServices(),
-        ]);
-        setMembers(memData || []);
-        setServices(srvData || []);
-      } catch (err) {
-        console.error("Failed to load members/services", err);
+    // Load members and services from the unified store
+    const memList = getStoreMembers();
+    const srvList = getStoreServices();
+    setMembers(memList);
+    setServices(srvList);
+
+    if (preselectedMemberId) {
+      const found = memList.find((m) => m.id === preselectedMemberId);
+      if (found) {
+        setSelectedMember(found);
+        setFormState((prev) => ({ ...prev, member_id: found.id }));
       }
     }
-    fetchData();
-  }, []);
+
+    // Listen for cross-screen updates
+    const handleUpdate = () => {
+      setMembers(getStoreMembers());
+    };
+    window.addEventListener("gym_store_updated", handleUpdate);
+    return () => window.removeEventListener("gym_store_updated", handleUpdate);
+  }, [preselectedMemberId]);
 
   const handleInputChange = (e: any, field: keyof SalesInput) => {
     setFormState((prev) => ({ ...prev, [field]: e }));
@@ -108,7 +124,7 @@ const NewSalePage = () => {
       formState.amount <= 0 ||
       !formState.startDate
     ) {
-      toast.error("Please select a member, service package, and start date");
+      toast.error("Please select an athlete, membership plan, and activation date");
       return;
     }
 
@@ -121,29 +137,31 @@ const NewSalePage = () => {
     showLoading();
 
     try {
-      const response = await AddSales(formState);
-      if (response?.id) {
-        try {
-          const stored = JSON.parse(localStorage.getItem("gym_sales") || "[]");
-          const mem = members.find((m) => m.id === formState.member_id) || selectedMember;
-          const srv = services.find((s) => s.id === formState.service_id) || selectedService;
-          const record = {
-            ...response,
-            member_name: mem?.name || "Gym Member",
-            member_phone: mem?.phone || "9820110025",
-            service_name: srv?.name || "Membership Plan",
-            dueAmount: Math.max(0, formState.amount - formState.discount - formState.paid),
-          };
-          localStorage.setItem("gym_sales", JSON.stringify([record, ...stored]));
-        } catch {}
-        toast.success("Sale invoice processed successfully!");
-        window.location.href = `/sales`;
-      } else {
-        toast.error("Failed to record sale");
-      }
+      // 1. Add to unified client-first store (automatically updates athlete's active plan in directory)
+      const newSale = addStoreSale({
+        member_id: formState.member_id,
+        service_id: formState.service_id,
+        startDate: formState.startDate,
+        amount: formState.amount,
+        discount: formState.discount,
+        paid: formState.paid,
+        description: formState.description,
+        paymentMode,
+      });
+
+      // 2. Sync to background server action
+      try {
+        AddSales(formState).catch((err) =>
+          console.warn("Server action background sync fallback:", err)
+        );
+      } catch {}
+
+      toast.success(`Membership sale recorded! Plan activated for ${selectedMember?.name || "Athlete"}.`);
+      
+      // 3. Open invoice directly
+      window.location.href = `/invoices/${newSale.id}`;
     } catch (err: any) {
       toast.error(err.message || "An error occurred while creating the sale");
-    } finally {
       setIsSubmitting(false);
       hideLoading();
     }
@@ -173,7 +191,6 @@ const NewSalePage = () => {
 
       {/* Main 2-Column POS Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
         {/* Left Column: Form Intake (7 Cols) */}
         <div className="lg:col-span-7 rounded-3xl bg-[#12141c] border border-zinc-800/80 p-6 sm:p-8 shadow-xl space-y-6">
           <div className="pb-4 border-b border-zinc-800/80 flex items-center justify-between">
@@ -196,20 +213,31 @@ const NewSalePage = () => {
             <div className="space-y-1.5">
               <Label className="text-xs font-medium text-zinc-300 flex items-center gap-1.5">
                 <User className="h-3.5 w-3.5 text-[#ccff00]" />
-                Select Member <span className="text-[#ccff00]">*</span>
+                Select Athlete / Member <span className="text-[#ccff00]">*</span>
               </Label>
               <ItemSelector
                 data={members}
                 valueKey="id"
                 labelKey="name"
+                defaultValue={formState.member_id}
                 onSelect={(value) => handleInputChange(value, "member_id")}
-                placeholder="Choose or search member name..."
-                searchPlaceholder="Search member name or phone..."
+                placeholder="Choose or search athlete name or phone..."
+                searchPlaceholder="Search athlete name, phone, or ID (e.g. Smitesh)..."
                 onSelectGetRow={(row) => setSelectedMember(row)}
               />
               {selectedMember && (
-                <div className="p-2.5 rounded-xl bg-zinc-900/60 border border-zinc-800 text-xs text-zinc-300 flex items-center justify-between">
-                  <span>Selected: <strong>{selectedMember.name}</strong></span>
+                <div className="p-3 rounded-xl bg-zinc-900/80 border border-zinc-800 text-xs text-zinc-300 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="size-6 rounded-full bg-[#ccff00]/20 text-[#ccff00] flex items-center justify-center font-bold text-[10px]">
+                      {selectedMember.name?.[0]?.toUpperCase() || "A"}
+                    </div>
+                    <div>
+                      <span className="font-semibold text-white">{selectedMember.name}</span>
+                      <span className="text-[11px] text-zinc-400 font-mono ml-2">
+                        ({selectedMember.memberCode || "MEM"})
+                      </span>
+                    </div>
+                  </div>
                   <span className="font-mono text-zinc-400">+91 {selectedMember.phone?.toString()}</span>
                 </div>
               )}
@@ -225,6 +253,7 @@ const NewSalePage = () => {
                 data={services}
                 valueKey="id"
                 labelKey="name"
+                defaultValue={formState.service_id}
                 onSelect={(value) => handleInputChange(value, "service_id")}
                 placeholder="Select membership tier..."
                 searchPlaceholder="Search service tiers..."
@@ -403,6 +432,12 @@ const NewSalePage = () => {
       </div>
     </div>
   );
-};
+}
 
-export default NewSalePage;
+export default function NewSalePage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-xs text-zinc-400">Loading Billing Terminal...</div>}>
+      <NewSaleForm />
+    </Suspense>
+  );
+}

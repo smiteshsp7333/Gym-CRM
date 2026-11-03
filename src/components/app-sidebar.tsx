@@ -19,6 +19,7 @@ import {
   Gift,
   Dumbbell,
   Utensils,
+  QrCode,
 } from "lucide-react";
 
 import { NavDocuments } from "@/components/nav-documents";
@@ -76,6 +77,11 @@ const data = {
     },
   ],
   navSecondary: [
+    {
+      title: "Front-Desk Kiosk",
+      url: "/kiosk",
+      icon: QrCode,
+    },
     {
       title: "Attendance Terminal",
       url: "/attendance",

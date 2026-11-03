@@ -20,11 +20,15 @@ import {
   Shield,
   User,
   Sparkles,
+  CreditCard,
+  Package,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useLoading } from "@/hooks/use-loading";
 import AttendanceSummary from "./AttendanceSummary";
 import { GYM_BRANDING } from "@/config/branding";
+import { getStoreMemberById, updateStoreMember } from "@/lib/gym-store";
 
 type Gender = "male" | "female" | "other";
 
@@ -39,10 +43,11 @@ interface FormState {
 }
 
 const MemberDetailPage = ({ params }: { params: any }) => {
+  const router = useRouter();
   const unwrappedParams = React.use(params);
   const { member_id } = unwrappedParams as { member_id: string };
 
-  const [formState, setFormState] = useState<MemberResponse>({
+  const [formState, setFormState] = useState<any>({
     id: "",
     name: "",
     email: "",
@@ -52,6 +57,7 @@ const MemberDetailPage = ({ params }: { params: any }) => {
     DOB: "",
     gender: "male",
     DOJ: "",
+    activeServiceName: null,
     createdAt: new Date(),
     updatedAt: new Date(),
   });
@@ -61,26 +67,21 @@ const MemberDetailPage = ({ params }: { params: any }) => {
 
   useEffect(() => {
     showLoading();
+    // 1. Fetch from unified store
+    const localMember = getStoreMemberById(member_id);
+    if (localMember) {
+      setFormState({
+        ...localMember,
+        phone: localMember.phone ? localMember.phone.toString() : "",
+        gender: localMember.gender || "male",
+      });
+      hideLoading();
+      return;
+    }
+
+    // 2. Fallback to server action
     async function fetchData() {
       try {
-        if (typeof window !== "undefined") {
-          const localMembers = localStorage.getItem("gym_members");
-          if (localMembers) {
-            try {
-              const parsed = JSON.parse(localMembers);
-              const found = parsed.find((m: any) => m.id === member_id);
-              if (found) {
-                setFormState({
-                  ...found,
-                  phone: found.phone ? found.phone.toString() : "",
-                  gender: found.gender || "male",
-                });
-                hideLoading();
-                return;
-              }
-            } catch {}
-          }
-        }
         const data = await GetMemberById(member_id);
         if (data) {
           setFormState({
@@ -96,14 +97,14 @@ const MemberDetailPage = ({ params }: { params: any }) => {
       }
     }
     fetchData();
-  }, [member_id]);
+  }, [member_id, showLoading, hideLoading]);
 
   const handleInputChange = (e: any, field: keyof FormState) => {
-    setFormState((prev) => ({ ...prev, [field]: e }));
+    setFormState((prev: any) => ({ ...prev, [field]: e }));
   };
 
   const handleGenderChange = (value: Gender) => {
-    setFormState((prev) => ({ ...prev, gender: value }));
+    setFormState((prev: any) => ({ ...prev, gender: value }));
   };
 
   const handleOnSubmit = async (e: React.FormEvent) => {
@@ -119,19 +120,14 @@ const MemberDetailPage = ({ params }: { params: any }) => {
 
     setIsSaving(true);
     try {
-      if (typeof window !== "undefined") {
-        const local = localStorage.getItem("gym_members");
-        if (local) {
-          try {
-            const list = JSON.parse(local);
-            const updated = list.map((m: any) =>
-              m.id === member_id ? { ...m, ...formState } : m
-            );
-            localStorage.setItem("gym_members", JSON.stringify(updated));
-          } catch {}
-        }
-      }
-      await UpdateMemberById(member_id, formState as any);
+      // 1. Update in unified store
+      updateStoreMember(member_id, formState);
+
+      // 2. Background sync to server action
+      try {
+        await UpdateMemberById(member_id, formState as any);
+      } catch {}
+
       toast.success("Member profile updated successfully");
     } catch {
       toast.error("Failed to update member");
@@ -144,7 +140,7 @@ const MemberDetailPage = ({ params }: { params: any }) => {
   const initials = formState.name
     ? formState.name
         .split(" ")
-        .map((n) => n[0])
+        .map((n: string) => n[0])
         .join("")
         .toUpperCase()
         .slice(0, 2)
@@ -163,6 +159,15 @@ const MemberDetailPage = ({ params }: { params: any }) => {
         </Link>
 
         <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            onClick={() => router.push(`/sales/new?member_id=${member_id}`)}
+            className="h-8 rounded-full bg-[#ccff00] hover:bg-[#b8e600] text-black font-bold text-xs gap-1.5 cursor-pointer shadow-md shadow-[#ccff00]/20"
+          >
+            <CreditCard className="size-3.5" />
+            <span>Issue / Renew Membership</span>
+          </Button>
+
           {phoneStr && (
             <a
               href={`https://wa.me/91${phoneStr}?text=Hello%20${encodeURIComponent(
@@ -233,12 +238,18 @@ const MemberDetailPage = ({ params }: { params: any }) => {
             </div>
           </div>
 
-          {/* Status Badges */}
+          {/* Status Badges & Active Plan */}
           <div className="flex sm:flex-col items-end gap-2 text-right">
             <span className="px-3.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-semibold flex items-center gap-1.5">
               <CheckCircle2 className="h-3.5 w-3.5" />
-              Active Member
+              {formState.activeServiceName ? "Active Membership" : "Registered Athlete"}
             </span>
+            {formState.activeServiceName && (
+              <span className="text-xs font-bold text-[#ccff00] flex items-center gap-1.5">
+                <Package className="size-3.5" />
+                {formState.activeServiceName}
+              </span>
+            )}
             <span className="text-[11px] text-zinc-400 font-mono">
               Club: {GYM_BRANDING.name}
             </span>
@@ -248,7 +259,6 @@ const MemberDetailPage = ({ params }: { params: any }) => {
 
       {/* 2-Column Content Layout: Edit Details Form & Attendance Dossier */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
         {/* Left Form: Edit Member Details (7 cols) */}
         <div className="lg:col-span-7 rounded-3xl bg-[#12141c] border border-zinc-800/80 p-6 sm:p-8 shadow-xl space-y-6">
           <div className="flex items-center justify-between pb-4 border-b border-zinc-800/80">
@@ -267,71 +277,74 @@ const MemberDetailPage = ({ params }: { params: any }) => {
           </div>
 
           <form onSubmit={handleOnSubmit} className="space-y-5">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Name */}
-              <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-zinc-300">
-                  Full Name <span className="text-[#ccff00]">*</span>
-                </Label>
-                <Input
-                  placeholder="e.g. Rahul Sharma"
-                  type="text"
-                  required
-                  value={formState.name}
-                  onChange={(e) => handleInputChange(e.target.value, "name")}
-                  className="h-11 rounded-xl bg-zinc-900/80 border-zinc-800 focus:border-[#ccff00] text-zinc-100 placeholder-zinc-500 text-sm"
-                />
-              </div>
-
-              {/* Phone */}
-              <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-zinc-300">
-                  Mobile Number <span className="text-[#ccff00]">*</span>
-                </Label>
-                <Input
-                  placeholder="10-digit phone"
-                  type="tel"
-                  required
-                  value={phoneStr}
-                  onChange={(e) => handleInputChange(e.target.value, "phone")}
-                  className="h-11 rounded-xl bg-zinc-900/80 border-zinc-800 focus:border-[#ccff00] text-zinc-100 placeholder-zinc-500 text-sm font-mono"
-                />
-              </div>
-            </div>
-
-            {/* Email */}
+            {/* Full Name */}
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-zinc-300">Email Address</Label>
+              <Label className="text-xs font-medium text-zinc-300">
+                Full Name <span className="text-[#ccff00]">*</span>
+              </Label>
               <Input
-                placeholder="name@domain.com"
-                type="email"
-                value={formState.email || ""}
-                onChange={(e) => handleInputChange(e.target.value, "email")}
+                placeholder="Full Name"
+                type="text"
+                value={formState.name}
+                onChange={(e) => handleInputChange(e.target.value, "name")}
                 className="h-11 rounded-xl bg-zinc-900/80 border-zinc-800 focus:border-[#ccff00] text-zinc-100 placeholder-zinc-500 text-sm"
               />
             </div>
 
+            {/* Mobile Number */}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium text-zinc-300">
+                Mobile Number <span className="text-[#ccff00]">*</span>
+              </Label>
+              <div className="relative">
+                <Input
+                  maxLength={10}
+                  placeholder="10 digit phone"
+                  type="text"
+                  value={phoneStr}
+                  onChange={(e) => handleInputChange(e.target.value.replace(/\D/g, ""), "phone")}
+                  className="h-11 rounded-xl bg-zinc-900/80 border-zinc-800 focus:border-[#ccff00] text-zinc-100 placeholder-zinc-500 text-sm font-mono"
+                />
+                <Phone className="absolute right-3.5 top-3.5 h-4 w-4 text-zinc-500 pointer-events-none" />
+              </div>
+            </div>
+
+            {/* Email Address */}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium text-zinc-300">Email Address</Label>
+              <div className="relative">
+                <Input
+                  placeholder="Email"
+                  type="email"
+                  value={formState.email || ""}
+                  onChange={(e) => handleInputChange(e.target.value, "email")}
+                  className="h-11 rounded-xl bg-zinc-900/80 border-zinc-800 focus:border-[#ccff00] text-zinc-100 placeholder-zinc-500 text-sm"
+                />
+                <Mail className="absolute right-3.5 top-3.5 h-4 w-4 text-zinc-500 pointer-events-none" />
+              </div>
+            </div>
+
             {/* Gender Selection */}
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label className="text-xs font-medium text-zinc-300">
                 Gender <span className="text-[#ccff00]">*</span>
               </Label>
               <RadioGroup
-                className="grid grid-cols-3 gap-3"
                 value={formState.gender}
-                onValueChange={handleGenderChange}
+                onValueChange={(val) => handleGenderChange(val as Gender)}
+                className="grid grid-cols-3 gap-2 pt-0.5"
               >
-                {["male", "female", "other"].map((g) => (
+                {(["male", "female", "other"] as Gender[]).map((gender) => (
                   <label
-                    key={g}
-                    className={`flex items-center justify-center gap-2 p-3 rounded-xl border text-xs font-semibold capitalize cursor-pointer transition-all ${
-                      formState.gender === g
-                        ? "bg-[#ccff00]/10 border-[#ccff00] text-[#ccff00]"
-                        : "bg-zinc-900/60 border-zinc-800 text-zinc-400 hover:text-zinc-200"
+                    key={gender}
+                    className={`flex items-center justify-center h-10 rounded-xl border text-xs font-semibold capitalize cursor-pointer transition-all ${
+                      formState.gender === gender
+                        ? "bg-[#ccff00]/15 border-[#ccff00] text-[#ccff00]"
+                        : "bg-zinc-900/60 border-zinc-800 text-zinc-400 hover:text-white"
                     }`}
                   >
-                    <RadioGroupItem value={g} className="sr-only" />
-                    {g}
+                    <RadioGroupItem value={gender} className="sr-only" />
+                    {gender}
                   </label>
                 ))}
               </RadioGroup>
